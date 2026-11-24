@@ -1,0 +1,30 @@
+<!DOCTYPE html><html><body style="margin:0;background:#8cf">
+<script type="module">
+import * as THREE from 'three';
+import { makeBoy, lookAt, YUSUF, MUSA } from '/src/characters.js';
+const q = new URLSearchParams(location.search);
+const t0 = performance.now();
+const y = makeBoy(YUSUF, { lod: q.get('lod') || 'hi' });
+const t1 = performance.now();
+const m = makeBoy(MUSA, { lod: q.get('lod') || 'hi' });
+const t2 = performance.now();
+const ys = makeBoy(YUSUF, { lod: 'lo', arms: { R: 'drive', L: 'drive' }, legs: 'sit' });
+const t3 = performance.now();
+window.__times = { yusuf: t1 - t0, musa: t2 - t1, yusufLoSit: t3 - t2 };
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight); renderer.toneMapping = THREE.NeutralToneMapping;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x8fc8f0);
+const { RoomEnvironment } = await import('three/addons/environments/RoomEnvironment.js');
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.55;
+const key = new THREE.DirectionalLight(0xffe7cc, 2.6); key.position.set(-1.6, 3.2, 3); scene.add(key);
+const rim = new THREE.DirectionalLight(0xbfe0ff, 2.0); rim.position.set(2.2, 2.4, -2.5); scene.add(rim);
+scene.add(new THREE.HemisphereLight(0xcfe8ff, 0x6d8a4a, 0.6));
+y.position.set(-0.55, 0, 0); y.rotation.y = 0.28; m.position.set(0.1, 0, 0); m.rotation.y = -0.3; ys.position.set(0.75, 0.3, 0); ys.rotation.y = -0.6;
+scene.add(y, m, ys);
+const cam = new THREE.PerspectiveCamera(24, innerWidth / innerHeight, 0.05, 50);
+if (q.get('shot') === 'faces') { cam.position.set(-0.2, 1.3, 1.6); cam.lookAt(-0.2, 1.27, 0); } else { cam.position.set(0.05, 0.95, 4.4); cam.lookAt(0.05, 0.78, 0); }
+lookAt(y, cam.position); lookAt(m, cam.position); lookAt(ys, cam.position);
+renderer.render(scene, cam);
+window.__ready = true;
+</script></body></html>
