@@ -20,8 +20,8 @@ Squadron**. The pajamas are the official uniform, and they never fly without
 them.
 
 This summer Yusuf is going to visit Musa. Instead of taking the car, he builds
-a plane out of a refrigerator box in his garage. Musa helps as **Mission
-Control** over video call. After a few test flights around Plano and one big
+a plane out of a refrigerator box in his garage. Musa helps from Greensboro over
+video call (see "Who's flying today?" below). After a few test flights around Plano and one big
 flight over Dallas, Yusuf flies the plane all the way to Greensboro. Musa shows
 him around his town from the air, and the visit ends with a big flight over
 Raleigh and a promise to do it again next summer.
@@ -30,18 +30,47 @@ Tone: funny, warm, a little daring. No villains and no scary moments.
 
 ## 2. Characters
 
+The game is made for the real Yusuf and Musa to play, each on his own iPad.
+
 | | Yusuf | Musa |
 |---|---|---|
 | Home | Plano, TX (the visitor) | Greensboro, NC (the host) |
-| Personality | Bold, loud, "full throttle!" | Clever, careful, "technically that's a stall" |
-| Chapter 1 (Plano) | Pilot, flying solo | Mission Control: a video-call bubble in the corner giving tips and jokes |
-| Chapter 2 (Greensboro) | Passenger and sightseer, then co-pilot | Pilot, showing off his town |
+| Personality | Bold, loud, "full throttle!" *(placeholder, to tune to the real kid)* | Clever, careful, "technically that's a stall" *(placeholder)* |
 
-In Chapter 1 the boys talk over video call. Once Yusuf lands in Greensboro they
-fly together in the same plane, and the friend who isn't flying gives hints and
-jokes through short text bubbles (voice optional later).
+### "Who's flying today?" (the player is always the hero)
+The title screen asks **"Who's flying today? Yusuf / Musa."** The kid who's
+playing picks himself, and the game centers on him:
 
-Look: matching red plaid pajamas, aviator goggles, mismatched slippers.
+- **He is always the pilot.** The other boy is always the sidekick who gives
+  hints and jokes.
+- Menus, the HUD and the end-of-mission screens say **"Captain Yusuf"** or
+  **"Captain Musa"**.
+- Each boy has **his own save file**, stars and plane paint job, so they can
+  compare and show off.
+
+How Chapter 1 works for each kid:
+
+| | Playing as Yusuf | Playing as Musa |
+|---|---|---|
+| Chapter 1 (Plano) | Yusuf flies his plane solo. Musa is **Mission Control** in a video-call bubble. | Musa flies Yusuf's plane **by remote control from Greensboro** on his iPad, with Yusuf strapped in the seat yelling "SLOW DOWN!" in the bubble. |
+| Travel flight | Yusuf flies east, Musa counts down the miles | Musa "remote-pilots" Yusuf all the way to his own backyard |
+| Chapter 2 (Greensboro) | Yusuf pilots, Musa rides along as tour guide | Musa pilots, Yusuf rides along sightseeing |
+
+The same 8 missions are used either way. Only the dialogue and who sits in
+the pilot seat change.
+
+### Look
+- **Pakistani American** boys, age 10: warm brown skin, dark hair, brown eyes.
+  *(Hair style, glasses, height and other details to come from the family, so
+  each boy can recognize himself.)*
+- **Christmas-holiday-style red plaid pajamas**, matching. A classic holiday
+  tartan: a bright red base with dark green and black bands and thin white and
+  yellow pinstripes. Long-sleeve button-up tops with a contrasting collar and
+  cuffs, and long pants. *(Match to a photo of the real pajamas if one is
+  available.)*
+- Aviator goggles pushed up on the forehead and mismatched slippers.
+- Art style: chunky, friendly low-poly toy figures with slightly big heads.
+  The tartan is a generated texture, so it stays crisp on the iPad screen.
 
 ## 3. The Plane
 
@@ -89,7 +118,7 @@ Landmarks are **stylized, miniature versions**, packed close together like a
 toy diorama. Plano and Greensboro are the focus. Dallas and Raleigh each get
 one big "city day" flight built around their most famous landmarks.
 
-### Chapter 1 — Plano, TX (Yusuf pilots, Musa is Mission Control)
+### Chapter 1 — Plano, TX
 
 | # | Mission | Where | Goal |
 |---|---|---|---|
@@ -103,11 +132,11 @@ the horizon, Heritage Farmstead barn, neighborhood pools and parks.
 
 ### Travel Flight — Texas to North Carolina
 Yusuf's big trip. A relaxed, scenic flight with no fail state: collect juice
-boxes, wave at trains, and fly over rivers and the Smoky Mountains while Musa
-counts down the miles on the video call. It ends with Yusuf landing in Musa's
-backyard, and the two finally meet up in person.
+boxes, wave at trains, and fly over rivers and the Smoky Mountains. It ends
+with the plane landing in Musa's backyard, and the two finally meet up in
+person.
 
-### Chapter 2 — Greensboro, NC (Musa pilots, Yusuf rides along)
+### Chapter 2 — Greensboro, NC (both boys in the plane)
 
 | # | Mission | Where | Goal |
 |---|---|---|---|
@@ -182,9 +211,13 @@ Engines!"** button requests that permission.
 
 ## 9. Privacy
 
-The game is public and stars real kids, so:
+The game is meant for Yusuf and Musa, but a Vercel link can be opened by anyone
+who has it, and it stars real kids. So:
+- Share it only as an **unlisted link** (no search indexing via `robots.txt` and
+  `noindex`), sent to the two families
 - Homes are **fictional** (made-up street names, no real addresses)
-- No real school names and no photos of the kids, only cartoon likenesses
+- No real school names, no last names and no photos of the kids, only cartoon
+  likenesses
 
 ## 10. Out of Scope (keep it simple)
 
