@@ -5,7 +5,7 @@ import { juiceBox, sock as sockMesh, iceCream, firefly, fishingHat, glowTexture 
 import { buildPlane } from './plane.js';
 import { Flight, BASE_SPEED } from './flight.js';
 import { clamp, damp, wrapAngle, DEG, lerp } from './util.js';
-import { Confetti, Puffs, birdFlock, addTraffic, candy, rainbowRing } from './fx.js';
+import { Confetti, Puffs, birdFlock, addTraffic, candy, rainbowRing, Shockwaves, Fireworks, skyRainbow } from './fx.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
@@ -119,7 +119,12 @@ export class MissionRun {
     const fc = B.corridor ? [[0, 600], [40, 1700], [-30, 2900], [10, 3800]] : [[B.cx, B.cz], [B.cx + 80, B.cz - 60], [B.cx - 90, B.cz + 70]];
     fc.forEach(([x, z], i) => birdFlock(world, x, z, { n: 5 + (i % 3), radius: 90 + i * 40, y: 38 + i * 12, speed: 0.1 + i * 0.03, seed: i * 2.1, color: def.time === 'night' ? 0x101018 : 0x2a2a3a }));
     this.confetti = new Confetti(this.scene);
-    this.puffs = new Puffs(this.scene);
+    this.puffs = new Puffs(this.scene, 220);
+    this.shock = new Shockwaves(this.scene);
+    this.fireworks = new Fireworks(this.puffs, this.app.sound);
+    if (def.time !== 'night') this.scene.add(skyRainbow(V(...S.spawn.p), S.spawn.h + 0.4));
+    this.fovKick = 0;
+    this.squash = 0;
     this.makeCandies();
     this.progress = (S.progress || []).slice();
     this.respawnTo(S.spawn.p, S.spawn.h);
@@ -299,6 +304,13 @@ export class MissionRun {
     this.animateScenery(dt);
     this.confetti.update(dt);
     this.puffs.update(dt);
+    this.shock.update(dt);
+    this.fireworks.update(dt);
+    if (this.squash > 0) {
+      this.squash = Math.max(0, this.squash - dt);
+      const k = Math.sin(this.squash / 0.4 * Math.PI) * 0.6;
+      this.plane.body.scale.set(1 + 0.18 * k, 1 - 0.25 * k, 1 + 0.12 * k);
+    } else this.plane.body.scale.set(1, 1, 1);
 
     if (this.phase === 'countdown') {
       this.countdown -= dt;
@@ -346,7 +358,9 @@ export class MissionRun {
     this.time += dt;
     this.invuln = Math.max(0, this.invuln - dt);
     const F = this.flight;
-    const input = this.autopilot ? this.autoInput() : this.app.input;
+    const easy = !this.autopilot && this.settings.easy !== false;
+    let input = this.autopilot ? this.autoInput() : this.app.input;
+    if (easy) input = this.easyInput(input, dt);
     const opt = { turn: this.profile.upgrades.wings ? 1.7 : 1.35, maxRoll: (this.profile.upgrades.wings ? 58 : 50) * DEG, tank: this.profile.upgrades.blower, free: this.freeBoost > 0 };
     this.freeBoost = Math.max(0, this.freeBoost - dt);
     this.trickCool = Math.max(0, this.trickCool - dt);
@@ -390,6 +404,7 @@ export class MissionRun {
       const alt = F.pos.y - this.groundAt(F.pos);
       if (alt < 4.5) F.p = Math.max(F.p, (4.5 - alt) * 4 * DEG);
     }
+    this.avoidObstacles(dt, easy || this.autopilot);
     // barrel roll trick!
     if (input.trick && this.trickCool <= 0 && F.pos.y - this.groundAt(F.pos) > 6) this.doTrick();
     if (this.trickT > 0) this.trickT = Math.max(0, this.trickT - dt);
@@ -412,6 +427,7 @@ export class MissionRun {
       this.puffs.emit(tail, { size: 0.9, life: 0.7, grow: 1.6, fade: 0.65 });
     }
     this.updateCandies(dt);
+    this.flightEffects(dt);
 
     // objectives & pickups
     this.updateObjective(dt);
@@ -519,6 +535,8 @@ export class MissionRun {
 
   hurt(kind) {
     this.shake = 0.5;
+    this.squash = 0.4;
+    this.app.hud.comic(['BONK!', 'POW!', 'BOING!', 'OOF!', 'THUD!'][Math.floor(Math.random() * 5)]);
     if (this.invuln > 0) return;
     this.invuln = 1.6;
     this.bumps++;
@@ -583,6 +601,7 @@ export class MissionRun {
     if (this.hat) { this.hat.visible = false; this.app.hud.say(this.speaker, 'Got Grandpa\'s hat! He\'s gonna be so happy!'); }
     this.addScore({ butter: 300, bumpy: 150, pancake: 60 }[grade], grade === 'butter' ? 'Butter bonus' : 'Landing');
     this.confetti.burst(F.pos.clone().add(V(0, 2, 0)), 160, 12, 9, 1.4);
+    this.fireworks.launch(F.pos.clone().addScaledVector(V(Math.sin(F.h), 0, Math.cos(F.h)), 40), 7);
     this.puffs.sparkle(F.pos.clone().add(V(0, 2, 0)), 30, 6);
     this.cheerT = 2.5;
     const stars = [true, this.candiesGot >= this.candyNeed, grade === 'butter'];
@@ -611,6 +630,10 @@ export class MissionRun {
         if (F.juice < 1) F.juice = Math.min(1, F.juice + 0.15);
         this.freeBoost = 1.0;
         this.confetti.burst(g.userData.c.clone().addScaledVector(F.forward(), 9), 60, 8, 4);
+        this.shock.spawn(g.userData.c, g.quaternion, g.userData.r - 3, 0xffffff);
+        this.app.hud.flash();
+        this.fovKick = 9;
+        this.app.sound.whoosh();
         this.cheerT = 0.8;
         this.pickup(100, o.style === 'photo' ? 'Click! 📸' : 'Ring!');
         const line = this.lines.at && this.lines.at[o.count];
@@ -666,6 +689,8 @@ export class MissionRun {
   completeObjective() {
     const o = this.currentObjective;
     o.done = true;
+    this.fireworks.launch(this.flight.pos.clone().addScaledVector(this.flight.forward(), 60).setY(this.groundAt(this.flight.pos)), 3);
+    this.app.hud.flash();
     o.meshes.forEach(m => (m.visible = false));
     this.objIndex++;
     if (this.objIndex >= this.objectives.length) {
@@ -755,6 +780,7 @@ export class MissionRun {
     this.app.sound.candy(this.combo);
     if (this.combo >= 3 && (this.combo === 3 || this.combo % 5 === 0)) {
       this.app.hud.combo(this.combo);
+      if (this.combo >= 5) this.fireworks.launch(this.flight.pos.clone().addScaledVector(this.flight.forward(), 70).setY(this.groundAt(this.flight.pos)), 2);
       if (this.combo >= 10) this.app.hud.say(this.speaker, ['COMBO! You\'re on fire!', 'Keep the combo going!', 'Unstoppable!'][Math.floor(Math.random() * 3)]);
     }
   }
@@ -772,6 +798,75 @@ export class MissionRun {
     this.cheerT = 1;
     this.pickup(150, 'Barrel roll!');
     if (Math.random() < 0.5) this.app.hud.say(this.speaker, ['WHOA! Barrel roll!', 'Do it again! DO IT AGAIN!', 'My stomach did a flip!', 'Show-off! I love it!'][Math.floor(Math.random() * 4)]);
+  }
+
+  // ------------------------------------------------------------ easy flying
+  easyInput(inp, dt) {
+    const ai = this.autoInput();
+    const idle = Math.abs(inp.roll) < 0.15 && Math.abs(inp.pitch) < 0.15;
+    this.idleT = idle ? (this.idleT || 0) + dt : 0;
+    const out = { roll: inp.roll, pitch: inp.pitch, boost: inp.boost, trick: inp.trick };
+    // height is automatic unless the kid pushes up or down
+    if (Math.abs(inp.pitch) < 0.25) out.pitch = ai.pitch;
+    // landing: let go of the stick and the plane lands itself
+    if (this.phase === 'land' && this.idleT > 0.6) out.roll = ai.roll;
+    // flying: after a moment with no steering, drift toward the next target
+    else if (this.phase === 'fly' && this.idleT > 1.2) out.roll = ai.roll * 0.7;
+    if (this.phase === 'land' && !this.landTipT) { this.landTipT = 1; this.app.hud.say(this.speaker, 'Let go of the stick and the plane will land itself!'); }
+    return out;
+  }
+
+  blockedAt(q, m = 3) {
+    for (const c of this.world.colliders) {
+      if (c.type === 'box') {
+        if (q.x > c.min.x - m && q.x < c.max.x + m && q.y > c.min.y - m && q.y < c.max.y + m && q.z > c.min.z - m && q.z < c.max.z + m) return c;
+      } else if (q.distanceTo(c.c) < c.r + m) return c;
+    }
+    return null;
+  }
+
+  /** look ahead and hop over (or steer around) buildings, trees and balloons */
+  avoidObstacles(dt, strong) {
+    const F = this.flight;
+    if (this.phase === 'land' && this.zoneLocal(F.pos).dist < this.zone.len / 2 + 70) return;
+    const f = F.forward();
+    const T = this.phase === 'fly' ? this.currentTarget() : null;
+    for (const d of strong ? [12, 24, 38] : [12, 22]) {
+      const q = F.pos.clone().addScaledVector(f, d);
+      if (T && (q.distanceTo(T) < 22 || F.pos.distanceTo(T) < d)) break; // flying through/under something on purpose (e.g. the bridge ring)
+      const c = this.blockedAt(q);
+      if (!c) continue;
+      const top = c.type === 'box' ? c.max.y : c.c.y + c.r;
+      const climb = (strong ? 16 : 9) * (1 - d / 50);
+      F.pos.y += climb * dt;
+      F.p = Math.max(F.p, 14 * DEG);
+      if (strong && top > F.pos.y + 18) {
+        const center = c.type === 'box' ? c.min.clone().add(c.max).multiplyScalar(0.5) : c.c;
+        const right = V(-Math.cos(F.h), 0, Math.sin(F.h));
+        const side = Math.sign(center.clone().sub(F.pos).dot(right)) || 1;
+        F.h += side * 1.1 * dt; // obstacle on the right: turn left, and vice versa
+      }
+      break;
+    }
+  }
+
+  flightEffects(dt) {
+    const F = this.flight, g = this.plane.group;
+    const frame = Math.floor(this.t * 60);
+    this.app.hud.speedLines(F.boosting);
+    if (frame % 3 === 0) {
+      for (const s of [-1, 1]) this.puffs.emit(g.localToWorld(V(s * 2.6, 0.85, 0.1)), { size: 0.45, life: 0.45, grow: 0.8, light: 0.97, sat: 0.1, fade: 0.55 });
+    }
+    const alt = F.pos.y - this.groundAt(F.pos);
+    if (alt < 8 && this.world.isWater(F.pos.x, F.pos.z) && frame % 2 === 0) {
+      this.puffs.emit(V(F.pos.x + (Math.random() - 0.5) * 3, 0.6, F.pos.z + (Math.random() - 0.5) * 3), { size: 1.6, life: 0.6, grow: 1.2, light: 0.95, sat: 0.3, fade: 0.8, v: V(0, 4 + Math.random() * 3, 0) });
+    }
+    if (this.cheerT > 0 && !this._cheering && this.pilotModel) {
+      const head = new THREE.Vector3();
+      this.pilotModel.userData.head.getWorldPosition(head);
+      this.puffs.sparkle(head.add(V(0, 0.8, 0)), 10, 1.2);
+    }
+    this._cheering = this.cheerT > 0;
   }
 
   updatePickups() {
@@ -914,7 +1009,8 @@ export class MissionRun {
     this.camera.up.set(0, 1, 0);
     this.camera.lookAt(this.camLook);
     this.camera.rotateZ(-F.r * 0.25);
-    const fov = 62 + (F.boosting ? 8 : 0);
+    this.fovKick = Math.max(0, this.fovKick - dt * 18);
+    const fov = 62 + (F.boosting ? 10 : 0) + this.fovKick;
     if (Math.abs(this.camera.fov - fov) > 0.1) { this.camera.fov = lerp(this.camera.fov, fov, 1 - Math.exp(-3 * dt)); this.camera.updateProjectionMatrix(); }
     this.world.follow(F.pos);
   }

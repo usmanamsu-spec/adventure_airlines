@@ -70,13 +70,13 @@ export class Puffs {
     this.i = 0;
     this.hue = 0;
   }
-  emit(pos, { color = null, size = 1.6, life = 0.8, v = null, grow = 1.5, fade = 1 } = {}) {
+  emit(pos, { color = null, size = 1.6, life = 0.8, v = null, grow = 1.5, fade = 1, light = 0.6, sat = 1 } = {}) {
     const s = this.sprites[this.i];
     this.i = (this.i + 1) % this.sprites.length;
     s.visible = true;
     s.position.copy(pos);
     this.hue = (this.hue + 0.035) % 1;
-    s.material.color.setHSL(color ?? this.hue, 1, 0.6);
+    s.material.color.setHSL(color ?? this.hue, sat, light);
     s.scale.setScalar(size);
     s.userData.life = life; s.userData.max = life; s.userData.size = size; s.userData.grow = grow;
     s.userData.v.copy(v || V(0, 0, 0));
@@ -223,4 +223,89 @@ export function rainbowRing(r, tube, style) {
   }
   geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
   return new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, toneMapped: false }));
+}
+
+// ---------------------------------------------------------------- shockwave rings
+export class Shockwaves {
+  constructor(scene, max = 6) {
+    this.pool = [];
+    for (let i = 0; i < max; i++) {
+      const m = new THREE.Mesh(new THREE.TorusGeometry(1, 0.08, 8, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthWrite: false, toneMapped: false }));
+      m.visible = false;
+      m.userData.life = 0;
+      scene.add(m);
+      this.pool.push(m);
+    }
+    this.i = 0;
+  }
+  spawn(pos, quat, r, color = 0xffffff) {
+    const m = this.pool[this.i];
+    this.i = (this.i + 1) % this.pool.length;
+    m.position.copy(pos);
+    m.quaternion.copy(quat);
+    m.material.color.set(color);
+    m.userData = { life: 0.6, r };
+    m.visible = true;
+  }
+  update(dt) {
+    for (const m of this.pool) {
+      if (!m.visible) continue;
+      m.userData.life -= dt;
+      if (m.userData.life <= 0) { m.visible = false; continue; }
+      const k = 1 - m.userData.life / 0.6;
+      m.scale.setScalar(m.userData.r * (1 + k * 1.6));
+      m.material.opacity = 1 - k;
+    }
+  }
+}
+
+// ---------------------------------------------------------------- fireworks (built on Puffs)
+export class Fireworks {
+  constructor(puffs, sound) { this.puffs = puffs; this.sound = sound; this.rockets = []; }
+  launch(pos, n = 5) {
+    for (let i = 0; i < n; i++) {
+      this.rockets.push({
+        p: pos.clone().add(V((Math.random() - 0.5) * 30, 0, (Math.random() - 0.5) * 30)),
+        v: V((Math.random() - 0.5) * 6, 26 + Math.random() * 10, (Math.random() - 0.5) * 6),
+        t: 0.9 + Math.random() * 0.6 + i * 0.25, hue: Math.random(), delay: i * 0.3,
+      });
+    }
+  }
+  update(dt) {
+    for (let i = this.rockets.length - 1; i >= 0; i--) {
+      const r = this.rockets[i];
+      if (r.delay > 0) { r.delay -= dt; continue; }
+      r.t -= dt;
+      r.v.y -= 12 * dt;
+      r.p.addScaledVector(r.v, dt);
+      this.puffs.emit(r.p, { color: 0.1, size: 0.7, life: 0.4, grow: 0.5, light: 0.8 });
+      if (r.t <= 0) {
+        for (let k = 0; k < 36; k++) {
+          const d = V(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+          this.puffs.emit(r.p, { color: (r.hue + (k % 3) * 0.08) % 1, size: 1.4, life: 1.1, v: d.multiplyScalar(14 + Math.random() * 4), grow: 0.3 });
+        }
+        this.sound && this.sound.pop();
+        this.rockets.splice(i, 1);
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------- a big rainbow in the sky
+export function skyRainbow(center, heading, radius = 700) {
+  const geo = new THREE.RingGeometry(radius * 0.86, radius, 96, 7, 0, Math.PI);
+  const p = geo.attributes.position, cols = [];
+  const c = new THREE.Color();
+  for (let i = 0; i < p.count; i++) {
+    const r = Math.hypot(p.getX(i), p.getY(i));
+    const k = (r - radius * 0.86) / (radius * 0.14);
+    c.setHSL(0.78 * (1 - k), 1, 0.6);
+    cols.push(c.r, c.g, c.b);
+  }
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+  const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.38, side: THREE.DoubleSide, depthWrite: false, fog: false, toneMapped: false }));
+  m.position.copy(center).add(V(Math.sin(heading) * 1500, -60, Math.cos(heading) * 1500));
+  m.rotation.y = heading;
+  m.renderOrder = -0.5;
+  return m;
 }

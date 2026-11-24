@@ -24,7 +24,8 @@ class App {
     // touch stick by default on iPad/iPhone (tilt is opt-in from Settings); keyboard on computers
     const touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if ((store.data.v || 0) < 2) this.settings.controls = touch ? 'touch' : 'keys';
-    if ((store.data.v || 0) < 3) { this.settings.assist = true; store.data.v = 3; store.save(); } // landing helper on for kids
+    if ((store.data.v || 0) < 3) this.settings.assist = true; // landing helper on for kids
+    if ((store.data.v || 0) < 4) { this.settings.easy = true; store.data.v = 4; store.save(); } // easy flying on for kids
     if (!this.settings.controls) this.settings.controls = touch ? 'touch' : 'keys';
     this.sound = new Sound(this.settings);
     this.root = document.getElementById('app');

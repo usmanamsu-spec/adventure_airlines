@@ -148,6 +148,7 @@ export class UI {
       </div></div>
       <div class="row"><span>Steering sensitivity</span><input type="range" class="sens" min="0.6" max="1.8" step="0.1" value="${s.sensitivity}"></div>
       <div class="row"><span>Flip up/down</span><button class="tog inv ${s.invert ? 'on' : ''}">${s.invert ? 'On' : 'Off'}</button></div>
+      <div class="row"><span>Easy flying <small>(auto height, dodges buildings, lands itself)</small></span><button class="tog easy ${s.easy !== false ? 'on' : ''}">${s.easy !== false ? 'On' : 'Off'}</button></div>
       <div class="row"><span>Landing helper</span><button class="tog assist ${s.assist ? 'on' : ''}">${s.assist ? 'On' : 'Off'}</button></div>
       <div class="row"><span>Sound effects</span><button class="tog snd ${s.sound ? 'on' : ''}">${s.sound ? 'On' : 'Off'}</button></div>
       <div class="row"><span>Music</span><button class="tog mus ${s.music ? 'on' : ''}">${s.music ? 'On' : 'Off'}</button></div>
@@ -166,6 +167,7 @@ export class UI {
     })));
     modal.querySelector('.sens').addEventListener('input', (e) => { s.sensitivity = Number(e.target.value); save(); });
     const tog = (cls, key) => modal.querySelector(cls).addEventListener('click', this.click(() => { s[key] = !s[key]; save(); modal.remove(); this.settings(back); }));
+    modal.querySelector('.easy').addEventListener('click', this.click(() => { s.easy = s.easy === false; save(); modal.remove(); this.settings(back); }));
     tog('.inv', 'invert'); tog('.assist', 'assist'); tog('.snd', 'sound'); tog('.mus', 'music');
     modal.querySelector('.reset').addEventListener('click', this.click(() => {
       if (confirm('Erase all stars and upgrades for BOTH pilots?')) { store.reset(); app.reloadProfiles(); modal.remove(); app.toTitle(); }

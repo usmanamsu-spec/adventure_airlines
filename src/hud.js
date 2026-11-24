@@ -27,7 +27,10 @@ export class Hud {
       <div class="combo hidden"></div>
       <div class="landmeter hidden"><div class="lm-title">Landing</div><div class="lm-bar"><div class="lm-dot"></div></div><div class="lm-text">Gentle!</div></div>
       <div class="banner hidden"></div>
-      <div class="damage"></div>`;
+      <div class="damage"></div>
+      <div class="speedlines"></div>
+      <div class="flash"></div>
+      <div class="comic hidden"></div>`;
     root.appendChild(el);
     this.el = el;
     this.q = (s) => el.querySelector(s);
@@ -109,6 +112,15 @@ export class Hud {
     b.classList.add('show');
     clearTimeout(this.banT);
     this.banT = setTimeout(() => b.classList.add('hidden'), ms);
+  }
+  speedLines(on) { this.set('sl', on, v => this.q('.speedlines').classList.toggle('on', v)); }
+  flash() { const f = this.q('.flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); }
+  comic(text) {
+    const c = this.q('.comic');
+    c.textContent = text;
+    c.style.left = `${38 + Math.random() * 24}%`;
+    c.style.setProperty('--rot', `${(Math.random() - 0.5) * 30}deg`);
+    c.classList.remove('hidden', 'go'); void c.offsetWidth; c.classList.add('go'); // fades itself out
   }
   damage() { const d = this.q('.damage'); d.classList.remove('hit'); void d.offsetWidth; d.classList.add('hit'); }
 }
