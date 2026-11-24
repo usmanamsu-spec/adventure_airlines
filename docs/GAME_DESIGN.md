@@ -61,7 +61,9 @@ the pilot seat change.
 
 ### Look
 
-![Character look v1](art/characters-v1.png)
+![Character look v2](art/characters-v2-full.png)
+
+![Character faces v2](art/characters-v2-faces.png)
 
 Both boys are **Pakistani American**, age 10, with warm brown skin, black hair
 and dark brown eyes.
