@@ -3,6 +3,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import './style.css';
 import { makeBoy, lookAt, setSlippers, BOYS } from './characters.js';
 import { buildPlane } from './plane.js';
+import { hotAirBalloon } from './world/props.js';
 import { Input } from './flight.js';
 import { Sound } from './audio.js';
 import { Hud } from './hud.js';
@@ -22,7 +23,8 @@ class App {
     this.input = new Input(this.settings);
     // touch stick by default on iPad/iPhone (tilt is opt-in from Settings); keyboard on computers
     const touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (store.data.v !== 2) { this.settings.controls = touch ? 'touch' : 'keys'; store.data.v = 2; store.save(); }
+    if ((store.data.v || 0) < 2) this.settings.controls = touch ? 'touch' : 'keys';
+    if ((store.data.v || 0) < 3) { this.settings.assist = true; store.data.v = 3; store.save(); } // landing helper on for kids
     if (!this.settings.controls) this.settings.controls = touch ? 'touch' : 'keys';
     this.sound = new Sound(this.settings);
     this.root = document.getElementById('app');
@@ -173,6 +175,14 @@ class App {
     Y.position.set(-0.45, 0, 0); Y.rotation.y = 0.28;
     M.position.set(0.5, 0, 0.05); M.rotation.y = -0.3;
     for (const b of [Y, M]) { b.traverse(o => { if (o.isMesh) o.castShadow = true; }); s.add(b); }
+    // colourful balloons drifting over the fence
+    this.titleBalloons = [[0xff4f6a, 0xffd23f], [0x3fb8ff, 0xffffff, 0xff6ad5], [0x5fd35a, 0xffd23f, 0x8a5cff]].map((c, i) => {
+      const b = hotAirBalloon(c, i + 1);
+      b.scale.setScalar(0.32);
+      b.position.set(-9 + i * 8, 9 + i * 1.5, -26 - i * 6);
+      s.add(b);
+      return b;
+    });
     this.titleCam = new THREE.PerspectiveCamera(30, this.aspect, 0.05, 200);
     this.titleT = 0;
   }
@@ -189,6 +199,14 @@ class App {
       cam.position.set(Math.sin(t * 0.15) * 0.5 + 0.05, 1.05, wide ? 4.4 : 5.6);
       cam.lookAt(0.05, 0.92, 0);
     }
+    // happy idle animation: bounce, sway, and a real wave
+    [[this.titleBoys.yusuf, 0], [this.titleBoys.musa, 1.4]].forEach(([b, ph]) => {
+      b.position.y = Math.abs(Math.sin(t * 2.2 + ph)) * 0.03;
+      b.rotation.z = Math.sin(t * 1.1 + ph) * 0.025;
+    });
+    const wh = this.titleBoys.yusuf.userData.waveHand;
+    if (wh) wh.quaternion.copy(wh.userData.baseQ).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin(t * 7) * 0.45));
+    this.titleBalloons.forEach((b, i) => { b.position.x += dt * (0.25 + i * 0.1); if (b.position.x > 16) b.position.x = -16; b.position.y = 9 + i * 1.5 + Math.sin(t * 0.6 + i) * 0.6; });
     lookAt(this.titleBoys.yusuf, cam.position);
     lookAt(this.titleBoys.musa, cam.position);
     this.titlePlane.update(dt, 4, false);
@@ -279,13 +297,13 @@ class App {
 
   onMissionComplete(r) {
     const p = this.profile;
-    const prev = p.missions[r.id]?.best;
+    const prev = p.missions[r.id]?.bestScore;
     recordResult(p, r.id, r);
     store.save();
     this.state = 'results';
     this.hud.hide();
     this.lastResult = r;
-    this.ui.results(r, this.missionIndex, prev != null && r.time < prev);
+    this.ui.results(r, this.missionIndex, prev != null && r.score > prev);
   }
 
   ending() {

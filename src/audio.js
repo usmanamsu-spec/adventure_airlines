@@ -87,9 +87,12 @@ export class Sound {
   ring() { [784, 988, 1175].forEach((f, i) => this.tone(f, 0.25, { at: i * 0.07, vol: 0.22, type: 'triangle' })); }
   pickup() { this.tone(660, 0.12, { vol: 0.2, type: 'square', slide: 2 }); }
   sockFound() { [523, 659, 784, 1047, 1319].forEach((f, i) => this.tone(f, 0.3, { at: i * 0.08, vol: 0.2, type: 'triangle' })); }
-  bump() { this.tone(120, 0.25, { vol: 0.5, type: 'sine', slide: 0.4 }); this.noise(0.2, { vol: 0.25, freq: 300 }); }
+  bump() { this.tone(220, 0.3, { vol: 0.4, type: 'sine', slide: 0.5 }); this.tone(440, 0.25, { vol: 0.2, type: 'sine', slide: 1.8, at: 0.08 }); }
   crash() { this.noise(0.9, { vol: 0.5, freq: 400, q: 0.5 }); this.tone(200, 0.8, { vol: 0.3, type: 'sawtooth', slide: 0.2 }); }
   splash() { this.noise(0.8, { vol: 0.4, freq: 1200, q: 0.6 }); }
+  candy(combo = 1) { const f = 880 * Math.pow(2, Math.min(combo - 1, 12) / 12); this.tone(f, 0.12, { vol: 0.16, type: 'triangle' }); this.tone(f * 1.5, 0.1, { vol: 0.1, type: 'sine', at: 0.05 }); }
+  trick() { this.noise(0.5, { vol: 0.25, freq: 1400, q: 0.7 }); [523, 784, 1047, 1568].forEach((f, i) => this.tone(f, 0.15, { at: i * 0.06, vol: 0.16, type: 'square' })); }
+  boing() { this.tone(300, 0.3, { vol: 0.3, type: 'sine', slide: 2.2 }); }
   click() { this.tone(900, 0.05, { vol: 0.15, type: 'square' }); }
   countdown(go) { this.tone(go ? 1047 : 523, go ? 0.4 : 0.15, { vol: 0.25, type: 'square' }); }
   fanfare() { [523, 659, 784, 1047, 784, 1047].forEach((f, i) => this.tone(f, 0.35, { at: i * 0.13, vol: 0.22, type: 'triangle' })); }

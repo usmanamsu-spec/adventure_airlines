@@ -121,9 +121,9 @@ export function billboard(text, { bg = '#2e7d32', fg = '#ffffff' } = {}) {
 
 // ---------------------------------------------------------------- times of day
 export const TIMES = {
-  morning: { top: 0x6fb5ee, horizon: 0xfbe6c8, sun: 0xfff0d2, sunI: 2.6, sunDir: [-0.5, 0.55, 0.65], hemiSky: 0xd2e8ff, hemiGround: 0x7d9257, hemiI: 1.0, fog: 0xe3ecec, glow: 0, exposure: 1.0 },
-  afternoon: { top: 0x3f97e3, horizon: 0xcfe8ff, sun: 0xffffff, sunI: 2.8, sunDir: [0.4, 0.8, 0.3], hemiSky: 0xcfe6ff, hemiGround: 0x6f8a4a, hemiI: 1.0, fog: 0xd6e9f7, glow: 0, exposure: 1.0 },
-  sunset: { top: 0x34488c, horizon: 0xff9a5a, sun: 0xffb070, sunI: 2.4, sunDir: [0.75, 0.22, -0.6], hemiSky: 0xffc8a0, hemiGround: 0x5b4a5a, hemiI: 0.8, fog: 0xf0a77a, glow: 0.7, exposure: 1.05 },
+  morning: { top: 0x4fa8f5, horizon: 0xffe3c0, sun: 0xfff0d2, sunI: 2.6, sunDir: [-0.5, 0.55, 0.65], hemiSky: 0xd2e8ff, hemiGround: 0x7d9257, hemiI: 1.0, fog: 0xe3ecec, glow: 0, exposure: 1.0 },
+  afternoon: { top: 0x2f8ff0, horizon: 0xc8ecff, sun: 0xffffff, sunI: 2.8, sunDir: [0.4, 0.8, 0.3], hemiSky: 0xcfe6ff, hemiGround: 0x6f8a4a, hemiI: 1.0, fog: 0xd6e9f7, glow: 0, exposure: 1.0 },
+  sunset: { top: 0x4a3f9c, horizon: 0xff8a5a, sun: 0xffb070, sunI: 2.4, sunDir: [0.75, 0.22, -0.6], hemiSky: 0xffc8a0, hemiGround: 0x5b4a5a, hemiI: 0.8, fog: 0xf0a77a, glow: 0.7, exposure: 1.05 },
   night: { top: 0x040a1e, horizon: 0x1a2a52, sun: 0x9db8ff, sunI: 0.45, sunDir: [-0.3, 0.7, 0.4], hemiSky: 0x40508a, hemiGround: 0x141a24, hemiI: 0.45, fog: 0x101a36, glow: 1.6, exposure: 1.1 },
 };
 
@@ -149,6 +149,7 @@ export class World {
     this.groundColor = ground;
     this.fogRange = fog;
     this.paths = [];
+    this.roads = [];
   }
 
   groundHeight(x, z) { return this.heightFn ? this.heightFn(x, z) : 0; }
@@ -204,13 +205,18 @@ export class World {
 
   house(x, z, ry = 0, { w = 10, d = 12, h = 5, wall = null, roof = null, garage = true, chimney = true } = {}) {
     const r = this.r;
-    const walls = [0xf4e9d8, 0xe8d5b5, 0xd9e4ec, 0xf1d3c4, 0xdde8cf, 0xc9b8a6, 0xb87a5d, 0xa86a52];
-    const roofs = [0x6b4b3e, 0x5a5f66, 0x8a3b2e, 0x3f4a5a, 0x7a6a5a];
+    // bright, candy-coloured houses
+    const walls = [0xffb3c7, 0xffe08a, 0x9fdcff, 0xb8f0b0, 0xd6c2ff, 0xffc89a, 0xfff6e8, 0x8fe3d6, 0xff9f9f];
+    const roofs = [0xe84a5f, 0x2f62c4, 0x7a4bc2, 0x2f9f5a, 0xf28c28, 0x3fb8c8, 0xd8406a];
     wall = wall ?? walls[Math.floor(r() * walls.length)];
     roof = roof ?? roofs[Math.floor(r() * roofs.length)];
     const c = Math.cos(ry), s = Math.sin(ry);
     const P = (lx, lz) => [x + lx * c + lz * s, z - lx * s + lz * c];
     this.box(x, 0, z, w, h, d, wall, { ry });
+    if (r() < 0.6) { // flower bed by the front door
+      const fx = x + (d / 2 + 2) * s + w * 0.25 * c, fz = z + (d / 2 + 2) * c - w * 0.25 * s;
+      this.flowers(fx, fz, 6, 2.2, 10);
+    }
     this.shape('roof', x, h, z, w + 1.2, 3.2, d + 1, roof, { ry: ry + Math.PI / 2 });
     // door + windows on the front (+z local)
     let [px, pz] = P(0, d / 2 + 0.06);
@@ -250,7 +256,8 @@ export class World {
     } else {
       const h = (6 + r() * 4) * s;
       this.shape('cyl6', x, y0, z, 0.7 * s, h * 0.45, 0.7 * s, 0x6a4a32);
-      const col = color ?? [0x4f8f3a, 0x5fa043, 0x447f36, 0x6aa84a][Math.floor(r() * 4)];
+      const blossom = !color && r() < 0.14;
+      const col = color ?? (blossom ? [0xff9fd0, 0xffb347, 0xfff07a][Math.floor(r() * 3)] : [0x55b83a, 0x6cc845, 0x48a83a, 0x7ad04f][Math.floor(r() * 4)]);
       const rad = h * 0.42;
       this.shape('sphere', x, y0 + h * 0.62, z, rad * 2, rad * 1.8, rad * 2, col);
       this.shape('sphere', x + rad * 0.5, y0 + h * 0.5, z + rad * 0.3, rad * 1.3, rad * 1.2, rad * 1.3, new THREE.Color(col).multiplyScalar(0.92));
@@ -261,6 +268,7 @@ export class World {
   road(x1, z1, x2, z2, w = 9, { lines = true, color = 0x4a4d52 } = {}) {
     const dx = x2 - x1, dz = z2 - z1, len = Math.hypot(dx, dz);
     const ry = Math.atan2(dx, dz);
+    this.roads.push([x1, z1, x2, z2, w]);
     const y = (this.groundHeight(x1, z1) + this.groundHeight(x2, z2)) / 2;
     this.box((x1 + x2) / 2, y + 0.02, (z1 + z2) / 2, w, 0.06, len, color, { ry });
     if (lines) {
@@ -274,7 +282,16 @@ export class World {
   circle(x, z, r, color = 0x4a4d52) { this.shape('disc', x, 0.02, z, r * 2, 0.06, r * 2, color); }
   lawn(x, z, w, d, color = 0x7fbf5a, ry = 0) { this.box(x, 0.01, z, w, 0.04, d, color, { ry }); }
 
-  fence(x1, z1, x2, z2, color = 0xb08a66) {
+  /** a patch of bright little flowers */
+  flowers(x, z, w = 8, d = 4, n = 14) {
+    const cols = [0xff4f6a, 0xffd23f, 0xff8fd0, 0xffffff, 0x8a5cff, 0xff9a3f, 0x3fb8ff];
+    for (let i = 0; i < n; i++) {
+      const fx = x + (this.r() - 0.5) * w, fz = z + (this.r() - 0.5) * d;
+      this.shape('sphere', fx, 0.35, fz, 0.7, 0.55, 0.7, cols[Math.floor(this.r() * cols.length)]);
+    }
+  }
+
+  fence(x1, z1, x2, z2, color = 0xffffff) {
     const dx = x2 - x1, dz = z2 - z1, len = Math.hypot(dx, dz);
     this.box((x1 + x2) / 2, 0, (z1 + z2) / 2, 0.15, 1.8, len, color, { ry: Math.atan2(dx, dz) });
   }

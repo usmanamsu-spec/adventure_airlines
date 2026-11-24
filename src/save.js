@@ -7,7 +7,7 @@ const KEY = 'backyard-squadron-v1';
 const newProfile = () => ({ missions: {}, upgrades: { wings: false, blower: false, floats: false }, paint: 'cardboard', paints: ['cardboard'], spent: 0, seenEnding: false });
 const defaults = () => ({
   profiles: { yusuf: newProfile(), musa: newProfile() },
-  settings: { controls: null, sensitivity: 1, invert: false, assist: false, sound: true, music: true },
+  settings: { controls: null, sensitivity: 1, invert: false, assist: true, sound: true, music: true },
   last: null,
 });
 
@@ -42,12 +42,13 @@ export function isUnlocked(p, i) {
   const prev = p.missions[MISSIONS[i - 1].id];
   return !!(prev && prev.done);
 }
-export function recordResult(p, id, { stars, sock, time }) {
+export function recordResult(p, id, { stars, sock, time, score }) {
   const m = p.missions[id] || { stars: [false, false, false], sock: false, done: false, best: null };
   m.stars = m.stars.map((s, i) => s || !!stars[i]);
   m.sock = m.sock || sock;
   m.done = true;
   m.best = m.best == null ? time : Math.min(m.best, time);
+  m.bestScore = Math.max(m.bestScore || 0, score || 0);
   p.missions[id] = m;
 }
 export function buyUpgrade(p, key) {

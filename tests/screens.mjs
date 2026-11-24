@@ -33,6 +33,7 @@ for (let i = 0; i < ids.length; i++) {
   if (which !== 'all' && !which.split(',').includes(ids[i])) continue;
   await page.evaluate(async (i) => { await window.__bsq.startMission(i, { autopilot: true }); window.__bsq.sim(4); }, i);
   await page.evaluate((s) => window.__bsq.sim(s), plan[ids[i]]);
+  await page.evaluate(() => { const m = window.__bsq.mission; if (m.phase === 'fly') { m.doTrick(); m.trickT = 0.5; window.__bsq.sim(0.25); } m.flight.boosting = true; for (let k = 0; k < 20; k++) m.puffs.emit(m.plane.group.localToWorld(m.plane.group.position.clone().set(0, 0.8, -1.8 - k * 0.6)), { size: 1.4, life: 0.9 }); });
   await shot(`m-${ids[i]}`);
 }
 await browser.close();

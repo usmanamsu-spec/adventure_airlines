@@ -9,7 +9,7 @@ export class Hud {
     el.innerHTML = `
       <div class="hud-top-left">
         <div class="pill objective"><span class="obj-icon">⭕</span><span class="obj-text">Rings 0/8</span></div>
-        <div class="pill timer"><span>⏱️</span><span class="time">0:00</span><span class="target"></span></div>
+        <div class="pill-row"><div class="pill score">🏆 <span class="sc">0</span></div><div class="pill candy">🍬 <span class="cn">0/0</span></div></div>
       </div>
       <div class="bubble hidden"><img class="face" alt=""><div><div class="who"></div><div class="said"></div></div></div>
       <div class="hud-top-right">
@@ -22,6 +22,9 @@ export class Hud {
       </div>
       <div class="joystick hidden"><div class="knob"></div></div>
       <button class="boost">BOOST</button>
+      <button class="trick">🌀<span>TRICK</span></button>
+      <div class="pops"></div>
+      <div class="combo hidden"></div>
       <div class="landmeter hidden"><div class="lm-title">Landing</div><div class="lm-bar"><div class="lm-dot"></div></div><div class="lm-text">Gentle!</div></div>
       <div class="banner hidden"></div>
       <div class="damage"></div>`;
@@ -29,7 +32,7 @@ export class Hud {
     this.el = el;
     this.q = (s) => el.querySelector(s);
     this.objIcon = this.q('.obj-icon'); this.objText = this.q('.obj-text');
-    this.timeEl = this.q('.time'); this.targetEl = this.q('.target');
+    this.scEl = this.q('.sc'); this.cnEl = this.q('.cn'); this.pops = this.q('.pops'); this.comboEl = this.q('.combo');
     this.rolls = this.q('.rolls'); this.fill = this.q('.juice .fill');
     this.bubble = this.q('.bubble'); this.face = this.q('.bubble .face'); this.who = this.q('.bubble .who'); this.said = this.q('.bubble .said');
     this.bannerEl = this.q('.banner');
@@ -38,6 +41,7 @@ export class Hud {
     this.q('.pause').addEventListener('click', () => app.pause());
     this.q('.recenter').addEventListener('click', () => { app.input.recenter(); this.banner('Tilt recentered', 'ok', 900); });
     app.input.bindTouch(this.joy, this.knob, this.boostBtn);
+    app.input.bindTrick(this.q('.trick'));
     this.cache = {};
     this.hide();
   }
@@ -50,6 +54,24 @@ export class Hud {
     this.el.classList.toggle('touch-mode', mode === 'touch');
   }
   setObjective(icon, text) { this.set('oi', icon, v => (this.objIcon.textContent = v)); this.set('ot', text, v => (this.objText.textContent = v)); }
+  setScore(n) { this.set('sc', n, v => { this.scEl.textContent = v.toLocaleString(); this.bump(this.scEl.parentElement); }); }
+  setCandy(n, need) { this.set('cn', `${n}/${need}`, v => { this.cnEl.textContent = v; this.cnEl.parentElement.classList.toggle('done', n >= need); if (n) this.bump(this.cnEl.parentElement); }); }
+  bump(el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+  popScore(text) {
+    const d = document.createElement('div');
+    d.className = 'scorepop';
+    d.textContent = text;
+    d.style.left = `${46 + Math.random() * 8}%`;
+    this.pops.appendChild(d);
+    setTimeout(() => d.remove(), 1100);
+  }
+  combo(n) {
+    const c = this.comboEl;
+    c.textContent = `COMBO x${n}!`;
+    c.classList.remove('hidden', 'go'); void c.offsetWidth; c.classList.add('go');
+    clearTimeout(this.comboT);
+    this.comboT = setTimeout(() => c.classList.add('hidden'), 1300);
+  }
   setTime(t, target) {
     const f = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
     this.set('t', Math.floor(t), () => (this.timeEl.textContent = f(t)));

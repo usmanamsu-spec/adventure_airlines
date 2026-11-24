@@ -492,6 +492,7 @@ export function makeBoy(spec, opts = {}) {
     hand.scale.setScalar(1.3);
     hand.position.copy(W).addScaledVector(dir, 0.004);
     boy.add(hand);
+    if (pose === 'wave') { boy.userData.waveHand = hand; hand.userData.baseQ = hand.quaternion.clone(); }
   }
 
   // ---------- neck + head ----------

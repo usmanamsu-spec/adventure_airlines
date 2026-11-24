@@ -2,9 +2,9 @@
 import * as THREE from 'three';
 import { clamp, damp, DEG } from './util.js';
 
-export const BASE_SPEED = 21;
-export const BOOST_SPEED = 33;
-export const LANDING_SPEED = 13;
+export const BASE_SPEED = 18;
+export const BOOST_SPEED = 29;
+export const LANDING_SPEED = 12;
 
 export class Flight {
   constructor() {
@@ -43,9 +43,9 @@ export class Flight {
     const turn = opt.turn ?? 1.15;
     this.h -= turn * Math.sin(this.r) * dt;
     // speed
-    const wantBoost = input.boost && this.juice > 0.02 && !opt.slow;
+    const wantBoost = ((input.boost && this.juice > 0.02) || opt.free) && !opt.slow;
     this.boosting = wantBoost;
-    if (wantBoost) this.juice = Math.max(0, this.juice - dt * (opt.tank ? 0.14 : 0.22));
+    if (wantBoost && !opt.free) this.juice = Math.max(0, this.juice - dt * (opt.tank ? 0.14 : 0.22));
     else this.juice = Math.min(1, this.juice + dt * 0.02);
     let target = wantBoost ? BOOST_SPEED : BASE_SPEED;
     if (opt.slow) target = LANDING_SPEED;
@@ -61,7 +61,7 @@ export class Flight {
 export class Input {
   constructor(settings) {
     this.settings = settings;
-    this.roll = 0; this.pitch = 0; this.boost = false;
+    this.roll = 0; this.pitch = 0; this.boost = false; this.trick = false; this.touchTrick = false;
     this.keys = new Set();
     this.joy = { x: 0, y: 0, active: false };
     this.touchBoost = false;
@@ -144,6 +144,8 @@ export class Input {
     if (k.has('ArrowDown') || k.has('KeyS')) pitch -= 1;
     if (k.has('Space') || k.has('ShiftLeft')) boost = true;
     // gamepad
+    let trick = this.touchTrick || k.has('KeyE') || k.has('KeyQ');
+    this.touchTrick = false;
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];
     for (const gp of pads) {
       if (!gp) continue;
@@ -151,6 +153,7 @@ export class Input {
       if (Math.abs(ax) > 0.15) roll += ax;
       if (Math.abs(ay) > 0.15) pitch -= ay;
       if (gp.buttons[0]?.pressed || gp.buttons[7]?.pressed || gp.buttons[5]?.pressed) boost = true;
+      if (gp.buttons[1]?.pressed || gp.buttons[2]?.pressed) trick = true;
     }
     const sens = S.sensitivity ?? 1;
     if (S.controls === 'touch' && this.joy.active) {
@@ -170,5 +173,10 @@ export class Input {
     this.roll = clamp(roll, -1, 1);
     this.pitch = clamp(pitch, -1, 1);
     this.boost = boost;
+    this.trick = trick;
+  }
+
+  bindTrick(el) {
+    el.addEventListener('pointerdown', (e) => { this.touchTrick = true; el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 250); e.preventDefault(); });
   }
 }

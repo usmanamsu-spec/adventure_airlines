@@ -92,7 +92,8 @@ export class UI {
       <div class="b-title">${m.title}</div>
       <div class="b-place">📍 ${m.place}</div>
       <div class="b-blurb">${m.blurb}</div>
-      <div class="b-stars">⭐ Finish · ⭐ Beat the clock · ⭐ Butter landing ${rec?.best ? `<br><small>Best time ${fmt(rec.best)}</small>` : ''}</div>
+      <div class="b-stars">⭐ Finish · ⭐ Collect the candy 🍬 · ⭐ Butter landing ${rec?.bestScore ? `<br><small>🏆 Best score ${rec.bestScore.toLocaleString()}</small>` : ''}</div>
+      <div class="b-tips">🍬 Follow the candy trail · 🌀 Tap TRICK for barrel rolls · 🔥 Grab things fast for combos!</div>
       ${needs ? `<div class="b-need">You need <b>${UPGRADES[m.requires].name}</b> from the Garage for this one! 🦩</div>` : ''}
       <div class="b-buttons"><button class="btn back">Back</button>${needs ? '<button class="btn big go-garage">🔧 Garage</button>' : '<button class="btn big go">🚀 Start Engines!</button>'}</div>
     </div>`;
@@ -195,14 +196,15 @@ export class UI {
   results(r, i, newBest) {
     const m = MISSIONS[i];
     const gradeText = { butter: '🧈 Butter landing!', bumpy: '🙂 Bumpy landing', pancake: '🥞 Pancake landing' }[r.grade];
-    const reasons = ['Mission complete', `Under ${fmt(r.targetTime)}`, 'Butter landing'];
+    const reasons = ['Mission complete', `Candy ${Math.min(r.candies, r.candyNeed)}/${r.candyNeed} 🍬`, 'Butter landing'];
     this.clear();
     this.el.className = 'dim';
     const last = i === MISSIONS.length - 1;
     this.el.innerHTML = `<div class="sheet results">
       <div class="r-title">${m.icon} ${m.title}</div>
       <div class="r-stars">${r.stars.map((s, k) => `<div class="rs ${s ? 'got' : ''}" style="animation-delay:${0.3 + k * 0.35}s"><div class="big">${s ? '⭐' : '☆'}</div><div>${reasons[k]}</div></div>`).join('')}</div>
-      <div class="r-line">${gradeText} · ⏱️ ${fmt(r.time)}${newBest ? ' · <b>New best!</b>' : ''}</div>
+      <div class="r-score">🏆 ${r.score.toLocaleString()}</div>
+      <div class="r-line">${gradeText} · 🍬 ${r.candies}/${r.candyTotal} · ⏱️ ${fmt(r.time)}${newBest ? ' · <b>New high score!</b>' : ''}</div>
       ${r.sock ? '<div class="r-line">🧦 Found the lost sock!</div>' : ''}
       ${r.crashes ? `<div class="r-line small">Rebuilt the plane ${r.crashes}×. Duct tape is amazing.</div>` : ''}
       <div class="b-buttons">
@@ -211,6 +213,7 @@ export class UI {
         ${last ? '<button class="btn big end">🎬 The End</button>' : '<button class="btn big next">Next mission ▶️</button>'}
       </div>
     </div>`;
+    this.confettiRain();
     this.bind('.retry', () => this.app.startMission(i));
     this.bind('.mapb', () => this.app.quitMission());
     this.bind('.next', () => this.app.startMission(i + 1));
@@ -235,7 +238,24 @@ export class UI {
       </div>
       <button class="btn big done">🗺️ Back to map</button>
     </div>`;
+    this.confettiRain(140);
     this.bind('.done', () => { app.showEnding(false); this.map(); });
+  }
+
+  confettiRain(n = 90) {
+    const box = document.createElement('div');
+    box.className = 'rain';
+    const cols = ['#ff4f6a', '#ff9a3f', '#ffd23f', '#5fd35a', '#3fb8ff', '#8a5cff', '#ff6ad5'];
+    for (let i = 0; i < n; i++) {
+      const d = document.createElement('i');
+      d.style.left = `${Math.random() * 100}%`;
+      d.style.background = cols[i % cols.length];
+      d.style.animationDelay = `${Math.random() * 1.5}s`;
+      d.style.animationDuration = `${2.2 + Math.random() * 2}s`;
+      d.style.transform = `rotate(${Math.random() * 360}deg)`;
+      box.appendChild(d);
+    }
+    this.el.appendChild(box);
   }
 
   loading(text) {

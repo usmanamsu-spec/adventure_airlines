@@ -172,9 +172,12 @@ export const MISSIONS = [
       w.addSphereCollider(new THREE.Vector3(105, 3, 96), 6);
       for (const [x, z] of [[70, 96], [130, 96], [65, 45], [125, 45], [140, 70]]) w.tree(x, z, { s: 1.1 });
       w.lawn(25, 70, 40, 60, 0x9a9a9a); // plaza / parking
-      // blocks around
+      // blocks around (kept clear of the ice-cream drop-offs and the park landing approach)
+      const items = [[-140, 17, -19], [-70, 17, 19], [40, 16, 150], [120, 18, -70], [175, 17, 19]];
       for (let x = -220; x <= 220; x += 44) for (const z of [-70, -120, 70, 130]) {
         if (x > 10 && x < 150 && z > 0) continue;
+        if (z === 70 && x > -140) continue;
+        if (items.some(([ix, , iz]) => Math.hypot(ix - x, iz - z) < 32)) continue;
         if (w.r() < 0.25) continue;
         w.building(x, z, 26, 26, 10 + w.r() * 18, [0xd9c2a0, 0xb8a080, 0x9a8a7a, 0xc0a890][Math.floor(w.r() * 4)]);
       }
@@ -182,10 +185,9 @@ export const MISSIONS = [
       streetHouses(w, -260, -190, 260, -190, { sides: [-1] });
       scatterTrees(w, 0, 0, 380, 380, 60, {}, (x, z) => Math.abs(z) < 150 && Math.abs(x) < 260);
       for (let i = 0; i < 6; i++) w.cloud(-300 + i * 120, 120, -200 + (i * 131) % 400);
-      const items = [[-140, 17, -19], [-70, 17, 19], [40, 16, 150], [120, 16, -70], [175, 17, 19]];
       return {
-        spawn: { p: [-230, 22, -60], h: PI / 2 },
-        objectives: [{ type: 'collect', label: 'Ice cream orders', kind: 'icecream', items, need: 5, r: 8 }],
+        spawn: { p: [-240, 30, -40], h: PI / 2 },
+        objectives: [{ type: 'collect', label: 'Ice cream orders', kind: 'icecream', items, need: 5, r: 9 }],
         landing: { p: [95, 70], h: PI / 2, len: 70, wid: 14, text: 'Land in Haggard Park!' },
         juice: [[-180, 20, 0], [-20, 20, 0], [40, 20, 60], [140, 20, -20], [100, 20, 30]],
         sock: [105, 10, 96],
@@ -351,7 +353,7 @@ export const MISSIONS = [
       ];
       return {
         spawn: { p: [220, 75, 40], h: -PI / 2 },
-        objectives: [{ type: 'rings', label: 'Rings', rings, r: 8, radii: { 6: 4.6 } }],
+        objectives: [{ type: 'rings', label: 'Rings', rings, r: 8, radii: { 6: 4.2 } }],
         landing: { p: [0, 82], h: PI / 2, len: 100, wid: 16, text: 'Land on the river levee park!' },
         juice: [[80, 80, -20], [-20, 60, 40], [-60, 20, 110], [-200, 20, 120], [-150, 25, 60]],
         sock: [140, 128, -170],
@@ -476,7 +478,7 @@ export const MISSIONS = [
   // ============================================================ 5. Firefly Night
   {
     id: 'm5', chapter: 2, title: 'Firefly Night', place: 'Greensboro, NC', time: 'night', icon: '✨',
-    blurb: 'First night flight! Catch 30 fireflies around Musa\'s neighborhood.',
+    blurb: 'First night flight! Catch 20 fireflies around Musa\'s neighborhood.',
     world: { ground: 0x3f6a3a, size: 1400, fog: [150, 900] },
     build(w) {
       musaHouse(w, 26, 30, -PI / 2);
@@ -506,7 +508,7 @@ export const MISSIONS = [
       }
       return {
         spawn: { p: [0, 24, -200], h: 0 },
-        objectives: [{ type: 'collect', label: 'Fireflies', kind: 'firefly', items, need: 30, r: 6 }],
+        objectives: [{ type: 'collect', label: 'Fireflies', kind: 'firefly', items, need: 20, r: 7 }],
         landing: { p: [0, 95], h: PI, len: 90, wid: 14, text: 'Land on Musa\'s street!' },
         juice: [[-100, 15, -100], [100, 15, -50], [-80, 15, 100], [90, 15, 160], [0, 20, 200], [0, 20, -120]],
         sock: [150, 8, 280],
@@ -516,13 +518,13 @@ export const MISSIONS = [
     },
     lines: {
       yusuf: {
-        intro: ['Welcome to Greensboro! I mean, it\'s me, Musa, back here.', 'Catch 30 fireflies! The Christmas lights help you see.'],
-        at: { 10: 'Ten fireflies! They\'re blinking at us!', 20: 'Twenty! We have SO many fireflies here.', 29: 'One more firefly!' },
+        intro: ['Welcome to Greensboro! I mean, it\'s me, Musa, back here.', 'Catch 20 fireflies! The Christmas lights help you see.'],
+        at: { 5: 'Five fireflies! They\'re blinking at us!', 10: 'Ten! We have SO many fireflies here.', 19: 'One more firefly!' },
         land: 'Land on my street. My mom made cookies!',
       },
       musa: {
-        intro: ['Whoa, REAL fireflies! We don\'t get this many in Plano!', 'Catch 30 of them, Captain Musa!'],
-        at: { 10: 'Ten! They look like tiny stars!', 20: 'Twenty! This is the coolest night ever.', 29: 'One more!' },
+        intro: ['Whoa, REAL fireflies! We don\'t get this many in Plano!', 'Catch 20 of them, Captain Musa!'],
+        at: { 5: 'Five! They look like tiny stars!', 10: 'Ten! This is the coolest night ever.', 19: 'One more!' },
         land: 'Land on your street! I smell cookies!',
       },
     },
@@ -700,7 +702,7 @@ export const MISSIONS = [
       w.add(nut);
       let s = 0;
       const len = curve.getLength();
-      const state = { speed: 9, paused: 0 };
+      const state = { speed: 7, paused: 0 };
       w.addDyn((dt) => {
         if (state.paused > 0) { state.paused -= dt; nut.userData.inner.position.y = 4.2 + Math.abs(Math.sin(state.paused * 8)) * 3; return; }
         s = (s + state.speed * dt) % len;
@@ -714,13 +716,14 @@ export const MISSIONS = [
       return {
         spawn: { p: [120, 40, 160], h: PI },
         objectives: [
-          { type: 'chase', label: 'Acorn tags', target: nut, need: 3, r: 10, maxAlt: 18, onTag: () => { state.paused = 1.5; state.speed += 2; } },
+          { type: 'chase', label: 'Acorn tags', target: nut, need: 3, r: 16, maxAlt: 28, onTag: () => { state.paused = 2; state.speed += 1; } },
         ],
         landing: { p: [-210, 330], h: -PI / 2, len: 110, wid: 16, text: 'Land on the path through the sunflowers!' },
         juice: [[60, 20, 100], [0, 18, 0], [-90, 18, 60], [90, 18, -60], [-150, 20, 220]],
         sock: [-100, 30, -252],
         bounds: { cx: -40, cz: 20, r: 520 },
         finale: true,
+        candyPath: route.map(p => [p.x, 9, p.z]),
       };
     },
     lines: {

@@ -21,9 +21,14 @@ No sound? Turn the volume up. The game unlocks sound on the first tap and also p
 | Turn | Left stick | Tilt like a steering wheel | ← → / A D / left stick |
 | Climb / dive | Stick up / down | Tip the iPad toward / away from you | ↑ ↓ / W S |
 | Boost | **BOOST** button | **BOOST** button | Space / A button |
+| Barrel roll | **🌀 TRICK** button | **🌀 TRICK** button | E / B button |
 | Recenter tilt | | 🎯 button | |
 
-Land gently inside the green strip for a **Butter landing ⭐**. Stars buy plane upgrades in the **Garage**: umbrella wings for tighter turns, a leaf-blower engine for a bigger boost tank, and flamingo floats for landing on water. The **Landing helper** setting makes landings easier.
+Every mission has 3 stars: **finish it**, **collect enough candy 🍬**, and make a **Butter landing 🧈** in the green strip. Grab things quickly for **combos 🔥** and tap **🌀 TRICK** (E key / B button) for barrel rolls and bonus points.
+
+The game helps kids out: big rainbow rings, gentle aim-assist toward the next target, a candy magnet, a ground cushion, 6 rolls of duct tape, and a **Landing helper** that's on by default.
+
+ Stars buy plane upgrades in the **Garage**: umbrella wings for tighter turns, a leaf-blower engine for a bigger boost tank, and flamingo floats for landing on water. The **Landing helper** setting makes landings easier.
 
 ### Missions
 | # | Mission | Place |
@@ -40,6 +45,7 @@ Land gently inside the green strip for a **Butter landing ⭐**. Stars buy plane
 
 | | |
 |---|---|
+| ![Plano](docs/screenshots/plano.png) | ![Balloons](docs/screenshots/balloons.png) |
 | ![Dallas](docs/screenshots/dallas.png) | ![Fireflies](docs/screenshots/fireflies.png) |
 | ![Greensboro](docs/screenshots/greensboro.png) | ![Results](docs/screenshots/results.png) |
 
