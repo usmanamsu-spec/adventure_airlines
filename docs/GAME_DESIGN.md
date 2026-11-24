@@ -177,7 +177,7 @@ Engines!"** button requests that permission.
 - **Three.js + Vite + TypeScript**, deployed as a static site on Vercel
 - Custom arcade flight model, no physics engine
 - One small scene per mission, low-poly with instanced trees and houses to
-  keep phones at 60 fps
+  keep the iPad at 60 fps
 - Progress saved in `localStorage`. No accounts and no data collection.
 
 ## 9. Privacy
