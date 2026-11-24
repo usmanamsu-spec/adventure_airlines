@@ -40,7 +40,7 @@ await page.waitForFunction(() => window.__bsq.state === 'mission' && window.__bs
 console.log('next mission started: m2');
 // portrait guard
 await page.setViewportSize({ width: 820, height: 1180 });
-await page.waitForTimeout(500);
+await page.waitForTimeout(1600);
 const paused = await page.evaluate(() => window.__bsq.paused);
 await page.screenshot({ path: `${out}/flow-portrait.png` });
 console.log('paused in portrait', paused);

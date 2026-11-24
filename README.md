@@ -11,14 +11,17 @@ A short 3D flying game for iPad starring **Yusuf** (Plano, TX) and **Musa** (Gre
 1. Open the game on the iPad and turn it **sideways**. It only plays in landscape.
 2. Tap **Share → Add to Home Screen**. It then opens full-screen like a real app.
 3. Pick who's flying today: **Yusuf** or **Musa**. Each boy has his own save, stars and plane.
-4. Tap **Start Engines!** and allow motion access when asked, so tilt steering works.
+4. Tap **Start Engines!** Drag the stick on the left to steer and hold **BOOST** on the right.
+5. Want to steer by tilting? Go to ⚙️ Settings → **Tilt (gyro)**. First lock the screen rotation (hold the iPad sideways, swipe down from the top-right corner, tap 🔒), or the screen will flip when you tilt.
 
-| Control | Tilt (default) | Touch stick | Keyboard / game controller |
+No sound? Turn the volume up. The game unlocks sound on the first tap and also plays when an iPhone's silent switch is on (iOS 17+).
+
+| Control | Touch stick (default) | Tilt (optional) | Keyboard / game controller |
 |---|---|---|---|
-| Turn | Tilt like a steering wheel | Left stick | ← → / A D / left stick |
-| Climb / dive | Tip the iPad toward / away from you | Stick down / up | ↑ ↓ / W S |
+| Turn | Left stick | Tilt like a steering wheel | ← → / A D / left stick |
+| Climb / dive | Stick up / down | Tip the iPad toward / away from you | ↑ ↓ / W S |
 | Boost | **BOOST** button | **BOOST** button | Space / A button |
-| Recenter tilt | 🎯 button | | |
+| Recenter tilt | | 🎯 button | |
 
 Land gently inside the green strip for a **Butter landing ⭐**. Stars buy plane upgrades in the **Garage**: umbrella wings for tighter turns, a leaf-blower engine for a bigger boost tank, and flamingo floats for landing on water. The **Landing helper** setting makes landings easier.
 

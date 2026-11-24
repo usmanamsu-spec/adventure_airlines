@@ -20,7 +20,10 @@ class App {
     store.load();
     this.settings = store.settings;
     this.input = new Input(this.settings);
-    if (!this.settings.controls) this.settings.controls = this.input.hasMotionAPI ? 'tilt' : 'keys';
+    // touch stick by default on iPad/iPhone (tilt is opt-in from Settings); keyboard on computers
+    const touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (store.data.v !== 2) { this.settings.controls = touch ? 'touch' : 'keys'; store.data.v = 2; store.save(); }
+    if (!this.settings.controls) this.settings.controls = touch ? 'touch' : 'keys';
     this.sound = new Sound(this.settings);
     this.root = document.getElementById('app');
 
@@ -44,7 +47,9 @@ class App {
     window.addEventListener('resize', () => this.resize());
     window.addEventListener('orientationchange', () => setTimeout(() => this.resize(), 200));
     document.addEventListener('visibilitychange', () => { if (document.hidden && this.state === 'mission' && !this.paused) this.pause(); });
-    this.root.addEventListener('pointerdown', () => this.sound.unlock(), { capture: true });
+    // iOS only allows audio to start inside a real tap / click / key press
+    for (const ev of ['touchend', 'click', 'keydown', 'pointerup']) window.addEventListener(ev, () => this.sound.unlock(), { capture: true });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && this.sound.ctx) this.sound.ctx.resume().catch(() => {}); });
   }
 
   get aspect() { return window.innerWidth / window.innerHeight; }
@@ -54,9 +59,15 @@ class App {
     const w = window.innerWidth, h = window.innerHeight;
     this.renderer.setSize(w, h);
     for (const cam of [this.titleCam, this.mission?.camera]) if (cam) { cam.aspect = w / h; cam.updateProjectionMatrix(); }
+    // Only react to portrait if it lasts: a quick accidental rotation shouldn't stop the game.
     const portrait = h > w * 1.05;
-    document.body.classList.toggle('portrait', portrait);
-    if (portrait && this.state === 'mission' && !this.paused) this.pause();
+    clearTimeout(this.portraitT);
+    if (!portrait) { document.body.classList.remove('portrait'); return; }
+    this.portraitT = setTimeout(() => {
+      if (window.innerHeight <= window.innerWidth * 1.05) return;
+      document.body.classList.add('portrait');
+      if (this.state === 'mission' && !this.paused) this.pause();
+    }, 900);
   }
 
   // ------------------------------------------------------------ boot
@@ -203,9 +214,9 @@ class App {
     this.player = who;
     store.data.last = who;
     store.save();
-    if (this.settings.controls === 'tilt') await this.input.requestMotion();
-    this.sound.unlock();
+    this.sound.unlock(); // first, while we're still inside the tap
     this.sound.startMusic('day');
+    if (this.settings.controls === 'tilt') await this.input.requestMotion();
     this.state = 'map';
     this.ui.map();
   }

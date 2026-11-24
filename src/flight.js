@@ -121,7 +121,7 @@ export class Input {
       this.joy.x = x; this.joy.y = y;
       knobEl.style.transform = `translate(${x * R * 0.6}px, ${y * R * 0.6}px)`;
     };
-    joyEl.addEventListener('pointerdown', (e) => { id = e.pointerId; joyEl.setPointerCapture(id); this.joy.active = true; move(e); e.preventDefault(); });
+    joyEl.addEventListener('pointerdown', (e) => { id = e.pointerId; try { joyEl.setPointerCapture(id); } catch { /* not capturable */ } this.joy.active = true; move(e); e.preventDefault(); });
     joyEl.addEventListener('pointermove', (e) => { if (e.pointerId === id) move(e); });
     const end = (e) => { if (e.pointerId !== id) return; id = null; this.joy.active = false; this.joy.x = this.joy.y = 0; knobEl.style.transform = ''; };
     joyEl.addEventListener('pointerup', end);

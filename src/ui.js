@@ -141,8 +141,8 @@ export class UI {
     modal.innerHTML = `<div class="sheet settings">
       <div class="s-title">⚙️ Settings</div>
       <div class="row"><span>Steering</span><div class="seg">
-        ${tiltOk ? `<button data-c="tilt" class="${s.controls === 'tilt' ? 'on' : ''}">📱 Tilt</button>` : ''}
         <button data-c="touch" class="${s.controls === 'touch' ? 'on' : ''}">🕹️ Touch stick</button>
+        ${tiltOk ? `<button data-c="tilt" class="${s.controls === 'tilt' ? 'on' : ''}">📱 Tilt (gyro)</button>` : ''}
         ${!tiltOk ? `<button data-c="keys" class="${s.controls === 'keys' ? 'on' : ''}">⌨️ Keyboard</button>` : ''}
       </div></div>
       <div class="row"><span>Steering sensitivity</span><input type="range" class="sens" min="0.6" max="1.8" step="0.1" value="${s.sensitivity}"></div>
@@ -150,7 +150,10 @@ export class UI {
       <div class="row"><span>Landing helper</span><button class="tog assist ${s.assist ? 'on' : ''}">${s.assist ? 'On' : 'Off'}</button></div>
       <div class="row"><span>Sound effects</span><button class="tog snd ${s.sound ? 'on' : ''}">${s.sound ? 'On' : 'Off'}</button></div>
       <div class="row"><span>Music</span><button class="tog mus ${s.music ? 'on' : ''}">${s.music ? 'On' : 'Off'}</button></div>
-      <div class="s-help">Tilt: hold the iPad like a steering wheel. Tip it away from you to dive, toward you to climb. Press 🎯 to recenter.<br>Keyboard: arrows / WASD to steer, Space to boost.</div>
+      <div class="s-help">Touch stick: drag the left stick to steer, hold BOOST to go fast.<br>
+        Tilt: hold the iPad like a steering wheel, tip it away to dive, toward you to climb, 🎯 recenters.
+        <b>If the screen keeps flipping when you tilt, lock rotation first:</b> hold the iPad sideways, swipe down from the top-right corner and tap the 🔒 lock.<br>
+        Keyboard: arrows / WASD to steer, Space to boost.</div>
       <div class="b-buttons"><button class="btn reset">Reset progress</button><button class="btn big close">Done</button></div>
     </div>`;
     this.el.appendChild(modal);

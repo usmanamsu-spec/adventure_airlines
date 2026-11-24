@@ -209,4 +209,9 @@ body.portrait #rotate { display: flex; }
   .pc-name { font-size: 22px; }
   .boost { width: 100px; height: 100px; font-size: 18px; }
   .joystick { width: 150px; height: 150px; }
+  .hud-bottom-left { transform: scale(.78); transform-origin: bottom right; }
+  #hud.touch-mode .hud-bottom-left { right: calc(128px + var(--safe-r)); }
+  .pill { font-size: 17px; padding: 6px 10px; }
+  .bubble .said { font-size: 15px; }
+  .bubble .face { width: 46px; height: 46px; }
 }

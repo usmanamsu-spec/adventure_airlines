@@ -1,28 +1,57 @@
 // Tiny synthesized sound kit (no audio files needed).
+
+// 0.1 s of silence as a WAV data URI (used to unlock iOS audio)
+const SILENT_WAV = (() => {
+  const n = 2205, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+  const w = (o, str) => { for (let i = 0; i < str.length; i++) v.setUint8(o + i, str.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 22050, true); v.setUint32(28, 44100, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36, 'data'); v.setUint32(40, n * 2, true);
+  let bin = ''; const u8 = new Uint8Array(buf);
+  for (let i = 0; i < u8.length; i++) bin += String.fromCharCode(u8[i]);
+  return 'data:audio/wav;base64,' + btoa(bin);
+})();
 export class Sound {
   constructor(settings) {
     this.settings = settings;
     this.ctx = null;
     this.musicTimer = null;
   }
+  /**
+   * Must run inside a tap/click/keypress. Creates and resumes the AudioContext, and on iPhone/iPad
+   * switches the audio session to "playback" so sound plays even when the silent switch is on.
+   */
   unlock() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { /* older iOS */ }
     if (!this.ctx) {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return;
       this.ctx = new AC();
       this.master = this.ctx.createGain();
-      this.master.gain.value = 0.7;
+      this.master.gain.value = 0.8;
       this.master.connect(this.ctx.destination);
       this.sfxBus = this.ctx.createGain(); this.sfxBus.connect(this.master);
-      this.musicBus = this.ctx.createGain(); this.musicBus.gain.value = 0.22; this.musicBus.connect(this.master);
+      this.musicBus = this.ctx.createGain(); this.musicBus.connect(this.master);
       this.applySettings();
+      // a silent looping <audio> element also moves older iOS into the playback session
+      this.keepAlive = new Audio(SILENT_WAV);
+      this.keepAlive.loop = true;
+      this.keepAlive.setAttribute('playsinline', '');
+      this.ctx.onstatechange = () => { if (this.ok && this.pendingMusic) this.startMusic(this.pendingMusic); };
     }
-    if (this.ctx.state === 'suspended') this.ctx.resume();
+    if (this.keepAlive && this.keepAlive.paused) this.keepAlive.play().catch(() => {});
+    if (this.ctx.state !== 'running') {
+      this.ctx.resume().catch(() => {});
+      // play a 1-sample buffer: the classic iOS unlock
+      const b = this.ctx.createBuffer(1, 1, 22050), src = this.ctx.createBufferSource();
+      src.buffer = b; src.connect(this.ctx.destination); src.start(0);
+    }
   }
   applySettings() {
     if (!this.ctx) return;
     this.sfxBus.gain.value = this.settings.sound ? 1 : 0;
-    this.musicBus.gain.value = this.settings.music ? 0.22 : 0;
+    this.musicBus.gain.value = this.settings.music ? 0.3 : 0;
   }
   get ok() { return this.ctx && this.ctx.state === 'running'; }
 
@@ -67,7 +96,7 @@ export class Sound {
   sad() { [392, 349, 330, 262].forEach((f, i) => this.tone(f, 0.3, { at: i * 0.15, vol: 0.2, type: 'triangle' })); }
 
   startEngine() {
-    if (!this.ok || this.engine) return;
+    if (!this.ctx || this.engine) return;
     const c = this.ctx;
     const o1 = c.createOscillator(), o2 = c.createOscillator();
     o1.type = 'sawtooth'; o2.type = 'square';
@@ -105,7 +134,8 @@ export class Sound {
   /** cheerful looping chiptune */
   startMusic(mood = 'day') {
     this.stopMusic();
-    if (!this.ok) return;
+    this.pendingMusic = mood;
+    if (!this.ctx) return; // starts on the first tap
     const scale = mood === 'night' ? [220, 247, 262, 330, 392, 440, 523] : [262, 294, 330, 392, 440, 523, 587];
     const pattern = mood === 'night' ? [0, 2, 4, 2, 5, 4, 2, 1] : [0, 2, 4, 5, 4, 2, 4, 6, 5, 4, 2, 0, 1, 2, 4, 2];
     const bass = [0, 0, 3, 4];
@@ -119,5 +149,5 @@ export class Sound {
       i++;
     }, beat * 1000);
   }
-  stopMusic() { if (this.musicTimer) clearInterval(this.musicTimer); this.musicTimer = null; }
+  stopMusic() { if (this.musicTimer) clearInterval(this.musicTimer); this.musicTimer = null; this.pendingMusic = null; }
 }
