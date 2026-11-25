@@ -81,7 +81,7 @@ class App {
   // ------------------------------------------------------------ boot
   async boot() {
     this.titleBoys = {};
-    const msgs = ['Building a BIG cardboard plane…', 'Ironing 8 pairs of pajamas…', 'Finding everybody\'s slippers…', 'Packing snacks…', 'Telling Anaya Apa she\'s in charge…', 'Warming up the juice boxes…', 'Finding Baby Musa\'s binky…', 'Almost ready…'];
+    const msgs = ['Building a BIG cardboard plane…', 'Ironing 8 pairs of pajamas…', 'Finding everybody\'s slippers…', 'Packing snacks…', 'Telling Anaya Apa she\'s in charge…', 'Finding Hassan\'s other slipper…', 'Warming up the juice boxes…', 'Finding Baby Musa\'s binky…', 'Almost ready…'];
     // full-detail models are only used for the portrait snapshots; the title screen uses lighter ones
     this.portraitRig();
     for (let i = 0; i < KIDS.length; i++) {
@@ -188,7 +188,7 @@ class App {
     this.titlePlane.group.traverse(o => { if (o.isMesh) o.castShadow = true; });
     s.add(this.titlePlane.group);
     // the whole squad: big kids in the back row, little ones in front
-    const spots = { anaya: [-1.05, -0.45, 0.25], yusuf: [-0.2, -0.4, 0.15], musa: [0.75, -0.45, -0.25], ayra: [-1.4, 0.55, 0.35],
+    const spots = { anaya: [-1.3, -0.45, 0.25], yusuf: [-0.5, -0.4, 0.15], hassan: [0.25, -0.45, 0.0], musa: [1.0, -0.45, -0.25], ayra: [-1.4, 0.55, 0.35],
       harun: [-0.72, 0.6, 0.15], zainab: [-0.12, 0.7, 0.05], babymusa: [0.4, 0.72, -0.1], faris: [1.0, 0.6, -0.3] };
     for (const [id, [x, z, ry]] of Object.entries(spots)) {
       const b = this.titleBoys[id];

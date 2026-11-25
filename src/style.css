@@ -318,7 +318,7 @@ html, body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 }
 
 /* ---------- the whole squad on the title screen ---------- */
-.pick { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(8px, 2vw, 16px); width: min(760px, 96vw); margin: 10px 0 2vh; }
+.pick { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(8px, 1.8vw, 14px); width: min(600px, 92vw); margin: 8px 0 2vh; }
 .pilot-card { width: auto; padding: 6px 6px 8px; border-width: 4px; border-radius: 20px; background: linear-gradient(var(--c1), var(--c2)) !important; animation-delay: calc(var(--i, 0) * -0.3s); }
 .pilot-card img { border-radius: 14px; }
 .pc-name { font-size: clamp(15px, 3.4vw, 24px); line-height: 1.1; margin-top: 4px; }
@@ -338,3 +338,8 @@ html, body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 #hud.touch-mode .honk { bottom: calc(240px + var(--safe-b)); }
 #hud, #hud button, .honk { touch-action: none; }
 @media (max-width: 500px) { .honk { width: 64px; height: 64px; bottom: calc(190px + var(--safe-b)); left: calc(24px + var(--safe-l)); } .honk b { font-size: 22px; } .honk span { font-size: 10px; } }
+/* nine pilots: smaller cards so the squad stays visible */
+.pick { width: min(440px, 72vw); gap: clamp(6px, 1.4vw, 10px); }
+.pilot-card { padding: 4px 4px 6px; border-width: 3px; border-radius: 16px; }
+.pc-name { font-size: clamp(13px, 2.8vw, 19px); margin-top: 2px; }
+.pc-stars { font-size: clamp(10px, 1.9vw, 13px); }

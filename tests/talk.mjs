@@ -11,7 +11,7 @@ page.on('pageerror', e => errors.push(e.message));
 await page.goto(base, { waitUntil: 'commit' });
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 300000 });
 await page.evaluate(() => { const h = window.__bsq.hud; const orig = h.say.bind(h); window.__said = []; h.say = (who, text, ms) => { window.__said.push([who, text]); return orig(who, text, ms); }; });
-const pilots = only ? [only] : ['yusuf', 'musa', 'anaya', 'ayra', 'harun', 'faris', 'zainab', 'babymusa'];
+const pilots = only ? [only] : ['yusuf', 'musa', 'hassan', 'anaya', 'ayra', 'harun', 'faris', 'zainab', 'babymusa'];
 let total = 0;
 for (const p of pilots) {
   for (const i of p === pilots[0] ? [0, 1] : [0]) {

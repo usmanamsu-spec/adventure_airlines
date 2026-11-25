@@ -116,8 +116,8 @@ export function buildPlane({ upgrades = {}, paint = 'cardboard' } = {}) {
   const lid = std(0xffffff, { roughness: 0.4 });
   const seats = {};
   const seatOrder = [];
-  const layout = [['pilot', 0, 1.95], ['r1a', -0.38, 0.95], ['r1b', 0.38, 0.95], ['r2a', -0.38, -0.05], ['r2b', 0.38, -0.05], ['r3a', -0.38, -1.05], ['r3b', 0.38, -1.05], ['back', 0, -1.95]];
-  const seatCols = [0x2f7fd0, 0xff5fa2, 0xffd23f, 0x5fd35a, 0xff9a3f, 0x8a5cff, 0x3fc5ff, 0xd8323a];
+  const layout = [['pilot', 0, 1.95], ['r1a', -0.38, 0.95], ['r1b', 0.38, 0.95], ['r2a', -0.38, -0.05], ['r2b', 0.38, -0.05], ['r3a', -0.38, -1.05], ['r3b', 0.38, -1.05], ['back', -0.38, -1.95], ['back2', 0.38, -1.95]];
+  const seatCols = [0x2f7fd0, 0xff5fa2, 0xffd23f, 0x5fd35a, 0xff9a3f, 0x8a5cff, 0x3fc5ff, 0xd8323a, 0x2fc9a0];
   layout.forEach(([name, x, z], i) => {
     add(body, new THREE.BoxGeometry(0.56, 0.32, 0.42), std(seatCols[i], { roughness: 0.5 }), x, 0.16, z - 0.12);
     add(body, new THREE.BoxGeometry(0.58, 0.05, 0.44), lid, x, 0.345, z - 0.12);

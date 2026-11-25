@@ -741,6 +741,7 @@ const HAIRLINE = {
   pigtails: [[0, 0.54], [0.5, 0.46], [0.9, 0.3], [1.25, 0.18], [1.45, 0.08], [1.75, -0.06], [2.3, -0.36], [Math.PI, -0.5]],
   spiky: [[0, 0.55], [0.5, 0.47], [0.9, 0.32], [1.25, 0.2], [1.45, 0.1], [1.75, -0.02], [2.3, -0.3], [Math.PI, -0.45]],
   curly: [[0, 0.53], [0.5, 0.45], [0.9, 0.29], [1.25, 0.17], [1.45, 0.07], [1.75, -0.06], [2.3, -0.36], [Math.PI, -0.5]],
+  buzz: [[0, 0.56], [0.5, 0.48], [0.9, 0.33], [1.25, 0.21], [1.45, 0.11], [1.75, -0.02], [2.3, -0.3], [Math.PI, -0.44]],
   baby: [[0, 0.68], [0.5, 0.62], [0.9, 0.48], [1.25, 0.36], [1.45, 0.28], [1.75, 0.18], [2.3, -0.05], [Math.PI, -0.15]],
 };
 function hairlineY(n, style) {
@@ -795,7 +796,7 @@ function buildHair(head, spec, sculpt, r, lo) {
     mesh(geo, hairMat, head);
   }
 
-  const counts = { straight: 380, neat: 500, long: 520, pigtails: 460, spiky: 320, curly: 560, baby: 90 };
+  const counts = { straight: 380, neat: 500, long: 520, pigtails: 460, spiky: 320, curly: 560, baby: 90, buzz: 700 };
   const geos = [];
   const N = Math.round((counts[style] || 400) * (lo ? 0.42 : 1));
   const crown = V(0.12, 0.75, -0.64).normalize();
@@ -857,6 +858,12 @@ function buildHair(head, spec, sculpt, r, lo) {
       flow = tangentize(V(r() - 0.5, r() - 0.5, r() - 0.5), n);
       L = lerp(0.04, 0.06, r()) * sc;
       lift0 = 0.012 + r() * 0.01; liftAmp = 0.012; width = lerp(0.013, 0.018, r()) * sc; flat = 0.7; curl = (r() < 0.5 ? -1 : 1) * 9;
+    } else if (style === 'buzz') {
+      // short, tidy buzz cut with a little lift at the front
+      flow = tangentize(V(0, 0.2, 1), n);
+      flow.applyAxisAngle(n, (r() - 0.5) * 0.6);
+      L = lerp(0.018, 0.03, r()) * sc;
+      lift0 = 0.004 + 0.008 * front; liftAmp = 0.002; width = lerp(0.012, 0.016, r()) * sc; flat = 0.45; taper = 0.6;
     } else if (style === 'baby') {
       flow = tangentize(V(r() - 0.5, 0.3, r() - 0.5), n);
       L = lerp(0.015, 0.03, r()) * sc;
@@ -942,7 +949,7 @@ function buildHair(head, spec, sculpt, r, lo) {
 
 function buildGoggles(head, spec, sculpt, lo) {
   const R = spec.R;
-  const lift = { straight: 1.2, long: 1.16, curly: 1.2, spiky: 1.24, baby: 1.06 }[spec.hair] || 1.11;
+  const lift = { straight: 1.2, long: 1.16, curly: 1.2, spiky: 1.24, baby: 1.06, buzz: 1.08 }[spec.hair] || 1.11;
   const tilt = -0.62;
   const pts = [];
   for (let i = 0; i < 64; i++) {
@@ -1034,7 +1041,13 @@ export const BABYMUSA = {
   expr: { mouthW: 0.036, mouthH: 0.024, smile: 0.2, asym: 0.0, lid: 0.25, lidTilt: 0.0, browL: 0.05, browR: 0.05 },
   headTilt: [0.08, -0.12, -0.1], pose: 'relaxed', slippers: [0x8fd3ff, 0x8fd3ff], card: ['#a6e3ff', '#3fa0d8'],
 };
-export const KIDS = [YUSUF, MUSA, ANAYA, AYRA, HARUN, FARIS, ZAINAB, BABYMUSA];
+export const HASSAN = {
+  id: 'hassan', name: 'Hassan', age: 10, seed: 117, R: 0.15, height: 1.01, girth: 1.02, skin: 0xc49069, blush: 0xde8468, hair: 'buzz',
+  face: { width: 1.01, cheeks: 0.07, jawTaper: 0.25, chin: 0.05 },
+  expr: { mouthW: 0.062, mouthH: 0.026, smile: 0.36, asym: 0.003, lid: 0.3, lidTilt: 0.03, browL: 0.07, browR: 0.05 },
+  headTilt: [0.03, -0.06, 0.05], arms: { R: 'relaxed', L: 'wave' }, slippers: [0xff7a1a, 0x2f8f5a], card: ['#ffc06a', '#d96a1a'],
+};
+export const KIDS = [YUSUF, MUSA, HASSAN, ANAYA, AYRA, HARUN, FARIS, ZAINAB, BABYMUSA];
 /** Ruman (13) lives in the Greensboro house. Not playable: he radios in and waits in the front yard. */
 export const RUMAN = {
   id: 'ruman', name: 'Ruman', age: 13, seed: 105, R: 0.142, height: 1.12, girth: 0.98, scale: 1.1, skin: 0xc28d68, blush: 0xdc8068, hair: 'straight',

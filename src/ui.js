@@ -71,7 +71,7 @@ export class UI {
       </div>
       <div class="chapters">
         <div class="chapter"><div class="ch-title">✈️ <b>Plano ➜ Greensboro</b></div>
-          <div class="ch-sub">Captain ${NAMES[who]} flies, and the whole squad rides along! The Greensboro kids (Musa, Ayra and Harun) came to visit the Plano house (Anaya Apa, Yusuf, Faris and Zainab). Now everybody flies back to Greensboro together, where Ruman is waiting. Anaya Apa is in charge of the back row.</div>
+          <div class="ch-sub">Captain ${NAMES[who]} flies, and the whole squad rides along! The Greensboro kids (Musa, Hassan, Ayra and Harun) came to visit the Plano house (Anaya Apa, Yusuf, Faris and Zainab). Now everybody flies back to Greensboro together, where Ruman is waiting. Anaya Apa is in charge of the back row.</div>
           ${MISSIONS.map((m, i) => card(m, i)).join('')}
         </div>
       </div>`;
@@ -257,7 +257,7 @@ export class UI {
       <div class="credits">
         <div><b>Starring</b></div>
         <div><b>The Plano house:</b> Anaya Apa · Yusuf · Faris · Zainab</div>
-        <div><b>The Greensboro house:</b> Musa · Ayra · Harun · Ruman</div>
+        <div><b>The Greensboro house:</b> Musa · Hassan · Ayra · Harun · Ruman</div>
         <div>and Baby Musa</div>
         <div class="cr-stats">⭐ ${totalStars(p)} / ${MISSIONS.length * 3} stars · 🧦 ${socksFound(p)} / ${MISSIONS.length} socks</div>
       </div>

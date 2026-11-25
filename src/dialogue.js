@@ -1,7 +1,7 @@
 // Who's who, and everything the squad says to each other.
 //
 // The Plano house:      Anaya Apa (13), Yusuf (10), Faris (5), Zainab (2)
-// The Greensboro house: Musa (10), Ayra (5), Harun (5) and Ruman (13, not playable: he talks on the walkie-talkie)
+// The Greensboro house: Musa (10), Hassan (10), Ayra (5), Harun (5) and Ruman (13, not playable: he talks on the walkie-talkie)
 // Also flying: Baby Musa (1)
 //
 // A script is a list of conversations; one is picked at random (without repeating recent ones).
@@ -11,14 +11,14 @@
 //   text:     may contain {pilot}; or an object keyed by speaker id, with a `default`.
 
 export const NAMES = {
-  yusuf: 'Yusuf', musa: 'Musa', anaya: 'Anaya Apa', ayra: 'Ayra', harun: 'Harun', faris: 'Faris', zainab: 'Zainab', babymusa: 'Baby Musa', ruman: 'Ruman',
+  yusuf: 'Yusuf', musa: 'Musa', anaya: 'Anaya Apa', ayra: 'Ayra', harun: 'Harun', faris: 'Faris', zainab: 'Zainab', babymusa: 'Baby Musa', hassan: 'Hassan', ruman: 'Ruman',
 };
-export const AGES = { yusuf: 10, musa: 10, anaya: 13, ayra: 5, harun: 5, faris: 5, zainab: 2, babymusa: 1, ruman: 13 };
-export const HOUSE = { anaya: 'plano', yusuf: 'plano', faris: 'plano', zainab: 'plano', musa: 'gso', ayra: 'gso', harun: 'gso', ruman: 'gso' };
+export const AGES = { yusuf: 10, musa: 10, anaya: 13, ayra: 5, harun: 5, faris: 5, zainab: 2, babymusa: 1, hassan: 10, ruman: 13 };
+export const HOUSE = { anaya: 'plano', yusuf: 'plano', faris: 'plano', zainab: 'plano', musa: 'gso', hassan: 'gso', ayra: 'gso', harun: 'gso', ruman: 'gso' };
 const GROUPS = {
-  little: ['zainab', 'babymusa'], five: ['ayra', 'harun', 'faris'], big: ['yusuf', 'musa', 'anaya'],
-  plano: ['anaya', 'yusuf', 'faris', 'zainab'], gso: ['musa', 'ayra', 'harun'],
-  any: ['yusuf', 'musa', 'anaya', 'ayra', 'harun', 'faris', 'zainab', 'babymusa'],
+  little: ['zainab', 'babymusa'], five: ['ayra', 'harun', 'faris'], big: ['yusuf', 'musa', 'hassan', 'anaya'],
+  plano: ['anaya', 'yusuf', 'faris', 'zainab'], gso: ['musa', 'hassan', 'ayra', 'harun'],
+  any: ['yusuf', 'musa', 'hassan', 'anaya', 'ayra', 'harun', 'faris', 'zainab', 'babymusa'],
 };
 
 const shuffle = (a) => a.map(v => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map(v => v[1]);
@@ -52,10 +52,10 @@ export const SCRIPTS = {
   // ======================================================== Test Flight (Plano)
   'intro.intro': [
     [["anaya|yusuf", "Okay, everybody listen! Seatbelts on. Nobody touches ANYTHING."], ["five", "Can I touch the window?"], ["anaya|musa", "There IS no window. It's a box."],
-      ["yusuf|musa", "Captain {pilot}, steer with the stick and fly through the glowing rings!"], ["little", Z("Wheee!", "Ba!")]],
+      ["yusuf|musa|hassan", "Captain {pilot}, steer with the stick and fly through the glowing rings!"], ["little", Z("Wheee!", "Ba!")]],
     [["yusuf|musa", "Squad, welcome aboard! Captain {pilot} is flying today!"], ["anaya", "I'm the oldest, so I'm in charge back here."], ["faris|harun", "Nuh-uh!"],
       ["anaya|yusuf", "Uh-huh. Rings first, {pilot}. Fly through all of them."], ["little", Z("Go! Go!", "Ba!")]],
-    [["ruman", "Ruman here, at the Greensboro house. Squadron, do you copy?"], ["musa|ayra|harun", "We copy, Ruman! We're doing a test flight in Plano first!"],
+    [["ruman", "Ruman here, at the Greensboro house. Squadron, do you copy?"], ["musa|hassan|ayra|harun", "We copy, Ruman! We're doing a test flight in Plano first!"],
       ["ruman", "Copy that. Don't crash before you get here."], ["anaya|yusuf", "Nobody is crashing. I'm supervising."]],
     [["faris|ayra|harun", "Is this a real airplane?"], ["yusuf|musa", "It's a REAL cardboard airplane."], ["anaya|musa", "Which is not the same thing. Seatbelts."], ["little", Z("Seat-belt!", "Ba-ba!")]],
   ],
@@ -84,17 +84,17 @@ export const SCRIPTS = {
   'intro.introTruck': [
     [["anaya|yusuf", "FARIS. Where did the PLANE go?!"], ["yusuf|musa", "He turned it into a TRUCK! A flying truck!"], ["five", "It's SO SHINY!"],
       ["little", Z("Twuck! Twuck!", "Vroom!")], ["anaya|yusuf", "Fine. Everybody in the back. Hold on to the sides."]],
-    [["ruman", "Ruman here. Uh... is that a flying TRUCK?"], ["musa|ayra|harun", "Faris is driving!"], ["ruman", "Of course he is."], ["anaya|yusuf", "Everybody stay sitting down in the truck bed!"]],
+    [["ruman", "Ruman here. Uh... is that a flying TRUCK?"], ["musa|hassan|ayra|harun", "Faris is driving!"], ["ruman", "Of course he is."], ["anaya|yusuf", "Everybody stay sitting down in the truck bed!"]],
     [["yusuf|musa", "Captain Faris, your truck is ready! Fly through the rings!"], ["ayra|harun", "Why is it all pointy?"], ["anaya|yusuf", "Because Faris drew it. With a ruler."], ["zainab|babymusa", Z("Pointy!", "Ba!")]],
   ],
   'trip.introTruck': [
-    [["musa|ayra|harun", "We're flying to Greensboro in a TRUCK!"], ["anaya|yusuf", "In the BACK of a truck. With the wind in our hair."], ["five", "BEST. DAY. EVER."], ["little", Z("Vroom vroom!", "Vroom!")]],
+    [["musa|hassan|ayra|harun", "We're flying to Greensboro in a TRUCK!"], ["anaya|yusuf", "In the BACK of a truck. With the wind in our hair."], ["five", "BEST. DAY. EVER."], ["little", Z("Vroom vroom!", "Vroom!")]],
     [["ruman", "Ruman here. Faris, you're driving all the way to Greensboro?"], ["anaya|yusuf", "He says he's a very good driver."], ["ruman", "He's five."], ["anaya|musa", "I KNOW."]],
   ],
 
   // ======================================================== The Big Flight
   'trip.intro': [
-    [["musa|ayra|harun", "Next stop: OUR house in Greensboro! Everybody ready?"], ["five", "Did anybody pack snacks?"], ["anaya|yusuf", "I packed snacks. Obviously. I pack everything."],
+    [["musa|hassan|ayra|harun", "Next stop: OUR house in Greensboro! Everybody ready?"], ["five", "Did anybody pack snacks?"], ["anaya|yusuf", "I packed snacks. Obviously. I pack everything."],
       ["little", Z("Snack!", "Nom nom!")], ["yusuf|musa", "Captain {pilot}, follow the rings and snap a photo at every landmark!"]],
     [["ruman", "Ruman to Squadron. The Greensboro house is ready for you. Over."], ["anaya|yusuf", "Copy, Ruman. We're leaving Plano now."],
       ["ruman", "Did Anaya pack too many snacks again?"], ["anaya", "There's no such thing as too many snacks."], ["little", Z("Snack!", "Ba!")]],
@@ -107,7 +107,7 @@ export const SCRIPTS = {
   'trip.dallas': [
     [["yusuf|anaya", "There's Dallas! Fly around the big glowing ball on Reunion Tower!"], ["little", Z("Big ball!", "Ba!")], ["anaya|musa", "Don't you DARE bump that ball, {pilot}."]],
     [["faris|ayra", "It looks like a giant lollipop!"], ["harun|faris", "I want to lick it."], ["anaya|yusuf", "Nobody is licking Dallas."]],
-    [["ayra|harun", "Is Dallas bigger than Greensboro?"], ["musa|harun", "Greensboro has better trees."], ["yusuf|anaya|faris", "Dallas has a giant glowing ball. Just saying."]],
+    [["ayra|harun", "Is Dallas bigger than Greensboro?"], ["musa|hassan|harun", "Greensboro has better trees."], ["yusuf|anaya|faris", "Dallas has a giant glowing ball. Just saying."]],
   ],
   'trip.state:Arkansas': [
     [["ayra|harun|faris", "Are we there yet?"], ["anaya|yusuf", "We just left Texas."]],
@@ -128,7 +128,7 @@ export const SCRIPTS = {
   ],
   'trip.state:Tennessee': [
     [["anaya|musa", "Tennessee! Halfway there. Everybody's still alive. Good job, team."]],
-    [["ruman", "Ruman here. You're in Tennessee? Look for the mountains soon."], ["musa|ayra|harun", "Okay, Ruman!"]],
+    [["ruman", "Ruman here. You're in Tennessee? Look for the mountains soon."], ["musa|hassan|ayra|harun", "Okay, Ruman!"]],
   ],
   'trip.fall': [
     [["ayra|harun", "The trees turned orange and red and yellow!"], ["musa|yusuf", "It's fall! The leaves change color here."], ["zainab|babymusa", { zainab: "Leafs! Pretty!", babymusa: "Ooooh!" }]],
@@ -150,7 +150,7 @@ export const SCRIPTS = {
     [["ayra|harun", "It looks like a giant snail shell!"], ["little", Z("Snail!", "Ba!")]],
   ],
   'trip.state:North Carolina': [
-    [["musa|ayra|harun", "NORTH CAROLINA! We're almost home!"], ["little", Z("Yay!", "Yaaa!")]],
+    [["musa|hassan|ayra|harun", "NORTH CAROLINA! We're almost home!"], ["little", Z("Yay!", "Yaaa!")]],
     [["ruman", "Ruman here. Welcome to North Carolina, Squadron!"], ["ayra|harun", "RUMAN! We're in our STATE!"], ["ruman", "I know. I can practically hear you from here."]],
   ],
   'trip.viaduct': [
@@ -158,25 +158,25 @@ export const SCRIPTS = {
     [["faris", "If I lived on that road I'd ride my bike on it every day."], ["anaya|yusuf", "You can't even ride your bike down our driveway, Faris."], ["faris", "...I'm working on it."]],
   ],
   'trip.pilot': [
-    [["musa|ayra", "Pilot Mountain! You can see it from Greensboro on clear days."], ["faris|harun", "Hey, WE'RE pilots!"], ["anaya|musa", "Only {pilot} is the pilot. You're a passenger."]],
+    [["musa|hassan|ayra", "Pilot Mountain! You can see it from Greensboro on clear days."], ["faris|harun", "Hey, WE'RE pilots!"], ["anaya|musa", "Only {pilot} is the pilot. You're a passenger."]],
     [["harun|ayra", "It looks like a giant cupcake!"], ["faris|harun", "With broccoli sprinkles!"], ["little", Z("Cupcake!", "Nom!")]],
   ],
   'trip.greensboro': [
-    [["musa|ayra|harun", "GREENSBORO! Welcome to our town, everybody!"], ["anaya|yusuf", "Look at that sunset. Okay, I'll admit it. This is pretty cool."], ["babymusa|zainab", { babymusa: "Ba?", zainab: "Home?" }]],
+    [["musa|hassan|ayra|harun", "GREENSBORO! Welcome to our town, everybody!"], ["anaya|yusuf", "Look at that sunset. Okay, I'll admit it. This is pretty cool."], ["babymusa|zainab", { babymusa: "Ba?", zainab: "Home?" }]],
     [["ruman", "Ruman here. I can SEE you! You're tiny!"], ["ayra|harun", "RUMAN! We see the town!"], ["ruman", "Get ready, I'm going outside to wave."]],
-    [["yusuf|faris", "So THIS is Greensboro!"], ["musa|ayra", "Wait till you see our street. It's the best one."], ["anaya|yusuf", "We'll be the judge of that."]],
+    [["yusuf|faris", "So THIS is Greensboro!"], ["musa|hassan|ayra", "Wait till you see our street. It's the best one."], ["anaya|yusuf", "We'll be the judge of that."]],
   ],
   'trip.guilford': [
-    [["musa|ayra", "That's the Guilford Courthouse battlefield. It's really old!"], ["harun|ayra", "Older than Anaya Apa?"], ["anaya", "HEY."]],
-    [["musa|harun", "We go there on field trips. There are statues and cannons!"], ["faris|yusuf", "CANNONS?!"], ["anaya|musa", "Old ones. For looking. Not for using."]],
+    [["musa|hassan|ayra", "That's the Guilford Courthouse battlefield. It's really old!"], ["harun|ayra", "Older than Anaya Apa?"], ["anaya", "HEY."]],
+    [["musa|hassan|harun", "We go there on field trips. There are statues and cannons!"], ["faris|yusuf", "CANNONS?!"], ["anaya|musa", "Old ones. For looking. Not for using."]],
   ],
   'trip.science': [
-    [["musa|ayra", "The Science Center! It has an aquarium AND a zoo!"], ["ayra|faris", "Can we see the penguins? Pleeeease?"], ["little", Z("Fishies!", "Fiss!")]],
+    [["musa|hassan|ayra", "The Science Center! It has an aquarium AND a zoo!"], ["ayra|faris", "Can we see the penguins? Pleeeease?"], ["little", Z("Fishies!", "Fiss!")]],
     [["harun|ayra", "Ruman took us there and a sea turtle looked right at me!"], ["faris|yusuf", "No way!"], ["harun|ayra", "Way!"]],
   ],
   'trip.coliseum': [
     [["yusuf|musa", "The Coliseum is HUGE!"], ["faris|harun", "I bet I could throw a ball over it."], ["anaya|yusuf", "You can't throw a ball over the couch."]],
-    [["musa|harun", "I saw a basketball game there!"], ["yusuf|faris", "Who won?"], ["musa|ayra", "I don't remember. I just remember the nachos."]],
+    [["musa|hassan|harun", "I saw a basketball game there!"], ["yusuf|faris", "Who won?"], ["musa|hassan|ayra", "I don't remember. I just remember the nachos."]],
   ],
   'trip.downtown': [
     [["musa|yusuf", "Downtown! That's Elm Street and the Carolina Theatre sign!"], ["ayra|harun", "Can we go to the movies?"], ["anaya|musa", "In our PAJAMAS? ...Actually, yes. Later."]],
@@ -195,7 +195,7 @@ export const SCRIPTS = {
     [["ruman", "Ruman here. You're passing A&T? You're almost here!"], ["ayra|harun", "Ruman, get outside and wave!"], ["ruman", "Already outside. Look for the guy waving."]],
   ],
   'trip.home': [
-    [["musa|ayra|harun", "There's OUR street! The blue house!"], ["ruman", "I see you! I'm in the front yard!"], ["anaya|yusuf", "Gentle landing, {pilot}. GENTLE."]],
+    [["musa|hassan|ayra|harun", "There's OUR street! The blue house!"], ["ruman", "I see you! I'm in the front yard!"], ["anaya|yusuf", "Gentle landing, {pilot}. GENTLE."]],
     [["ayra|harun", "I can see Ruman waving!"], ["yusuf|faris", "Hi, Ruman!"], ["little", Z("Hi! Hi!", "Hi!")], ["anaya|musa", "Wave AFTER we land."]],
   ],
   'trip.land': [
@@ -306,6 +306,14 @@ export const SCRIPTS = {
 
   // random chatter while flying
   banter: [
+    [["hassan", "Yusuf, when we land, basketball. One on one."], ["yusuf", "You're ON."], ["musa|anaya", "I'm reffing."], ["five", "Can we play too?!"]],
+    [["hassan", "Musa, I bet I can count more cows than you."], ["musa", "You're on. One... two..."], ["hassan", "Seventeen!"], ["musa", "That's not fair, you're on the cow side!"]],
+    [["hassan", "Anaya Apa, can I be in charge of the snacks?"], ["anaya", "Absolutely not."], ["hassan", "Worth a try."]],
+    [["harun|ayra", "Hassan, tell the joke about the cardboard box!"], ["hassan", "Why did the box go to the doctor? It felt a little... flat."], ["five", "HAHAHA!"], ["anaya|yusuf", "That was terrible. I love it."]],
+    [["hassan", "When we get home, I'm showing everybody my new basketball shoes."], ["faris|harun", "Are they fast?"], ["hassan", "SUPER fast. Faster than this plane."], ["yusuf|musa", "Nothing is faster than this plane."]],
+    [["hassan", "Ruman, are you there? Over."], ["ruman", "I'm here, Hassan. Over."], ["hassan", "Just checking. Over."], ["ruman", "...Okay. Over."]],
+    [["zainab|babymusa", Z("Hassan! Hassan!", "Ha-ha!")], ["hassan", "Hi, little buddy! High five!"], ["zainab|babymusa", Z("Fi!", "Ba!")]],
+    [["hassan", "I can see the Greensboro house from here!"], ["anaya|yusuf", "We're still in a different state, Hassan."], ["hassan", "...I can IMAGINE it."]],
     [["ayra|harun|faris", "Are we there yet?"], ["anaya|musa", "No."], ["ayra|harun|faris", "Are we there yet NOW?"], ["anaya|yusuf", "NO."]],
     [["harun|faris|ayra", "I need to go potty."], ["anaya|musa", "You JUST went! Hold it."], ["zainab|babymusa", { zainab: "Potty!", babymusa: "Ba!" }]],
     [["faris|harun", { faris: "Harun is touching me!", harun: "Faris is touching me!", default: "Somebody is touching me!" }], ["harun|faris|ayra", "I'm not touching you. I'm touching the AIR next to you."], ["anaya|yusuf", "Both of you, hands in your laps."]],
@@ -323,17 +331,17 @@ export const SCRIPTS = {
     [["faris", "Anaya Apa, Yusuf is making faces at me!"], ["yusuf", "I'm not! This is just my face!"], ["anaya", "Both of you, eyes forward."]],
     [["zainab", "Apa! Apa!"], ["anaya|yusuf", "What is it, Zainab?"], ["zainab", "...Hi!"], ["anaya|yusuf", "Hi, Zainab."]],
     [["yusuf|faris", "Anaya Apa, are you EVER not in charge?"], ["anaya", "No. I was born in charge."]],
-    [["faris|zainab", { faris: "Our house is the best house.", zainab: "Our house!", default: "Plano is the best!" }], ["musa|ayra|harun", "Our house has a basketball hoop!"], ["yusuf|faris", "...Okay, that IS pretty good."]],
+    [["faris|zainab", { faris: "Our house is the best house.", zainab: "Our house!", default: "Plano is the best!" }], ["musa|hassan|ayra|harun", "Our house has a basketball hoop!"], ["yusuf|faris", "...Okay, that IS pretty good."]],
     // Greensboro siblings
-    [["ayra", "Musa, are you going to show them our room?"], ["musa|harun", "Yeah! And the backyard! And the tree!"], ["harun|ayra", "And my rock collection!"], ["anaya|yusuf", "Can't wait. Truly."]],
-    [["harun", "I miss Ruman."], ["ayra|musa", "We'll see him soon!"], ["harun|ayra", "I want to tell him we flew in a BOX."]],
-    [["musa|ayra", "Harun, stop kicking my seat."], ["harun", "I'm not kicking. I'm doing airplane legs."]],
-    [["ayra|harun", "When we get home I want pancakes."], ["musa|harun", "It's going to be dinnertime."], ["ayra|faris", "Dinner pancakes!"]],
+    [["ayra", "Musa, are you going to show them our room?"], ["musa|hassan|harun", "Yeah! And the backyard! And the tree!"], ["harun|ayra", "And my rock collection!"], ["anaya|yusuf", "Can't wait. Truly."]],
+    [["harun", "I miss Ruman."], ["ayra|musa|hassan", "We'll see him soon!"], ["harun|ayra", "I want to tell him we flew in a BOX."]],
+    [["musa|hassan|ayra", "Harun, stop kicking my seat."], ["harun", "I'm not kicking. I'm doing airplane legs."]],
+    [["ayra|harun", "When we get home I want pancakes."], ["musa|hassan|harun", "It's going to be dinnertime."], ["ayra|faris", "Dinner pancakes!"]],
     // the walkie-talkie
     [["ruman", "Ruman here. How's the flight?"], ["anaya|yusuf", "Loud."], ["five", "AWESOME!"], ["ruman", "Sounds about right."]],
     [["ruman", "Ruman here. Anaya, are you bossing everyone again?"], ["anaya", "Somebody has to, Ruman."], ["ruman", "Fair enough."]],
     [["ruman", "Ruman here. Just checking: is everybody still wearing the pajamas?"], ["any", "OBVIOUSLY!"], ["little", Z("Jammies!", "Ba!")]],
-    [["ruman", "Ruman here. I made the beds for everyone. You owe me."], ["musa|ayra|harun", "Thanks, Ruman!"], ["anaya|yusuf", "We'll see if they're made correctly."]],
+    [["ruman", "Ruman here. I made the beds for everyone. You owe me."], ["musa|hassan|ayra|harun", "Thanks, Ruman!"], ["anaya|yusuf", "We'll see if they're made correctly."]],
     [["ayra|harun", "Ruman, are you there?"], ["ruman", "I'm here. I'm always here. It's a walkie-talkie."]],
     // the little ones
     [["zainab", "Birdie!"], ["babymusa|zainab", Z("Birdie!", "Bir!")], ["anaya|musa", "Yes, birds. We're flying with the birds."]],

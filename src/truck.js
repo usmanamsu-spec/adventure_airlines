@@ -189,8 +189,8 @@ export function buildTruck() {
   const seatOrder = [];
   const seatMat = new THREE.MeshStandardMaterial({ color: 0x2a2b2e, roughness: 0.7 });
   const layout = [['pilot', 0.45, 1.35, 0.86], ['r1a', -0.42, -0.9, 1.05], ['r1b', 0.42, -0.9, 1.05], ['r2a', -0.42, -1.6, 1.05], ['r2b', 0.42, -1.6, 1.05],
-    ['r3a', -0.42, -2.3, 1.05], ['r3b', 0.42, -2.3, 1.05], ['back', 0, -2.85, 1.05]];
-  const cushionCols = [0x2a2b2e, 0xff5fa2, 0xffd23f, 0x5fd35a, 0xff9a3f, 0x8a5cff, 0x3fc5ff, 0xd8323a];
+    ['r3a', -0.42, -2.3, 1.05], ['r3b', 0.42, -2.3, 1.05], ['back', -0.42, -2.85, 1.05], ['back2', 0.42, -2.85, 1.05]];
+  const cushionCols = [0x2a2b2e, 0xff5fa2, 0xffd23f, 0x5fd35a, 0xff9a3f, 0x8a5cff, 0x3fc5ff, 0xd8323a, 0x2fc9a0];
   layout.forEach(([name, x, z, y], i) => {
     if (i === 0) add(new THREE.BoxGeometry(0.55, 0.1, 0.5).translate(x, y - 0.06, z - 0.1), seatMat);
     else add(new THREE.BoxGeometry(0.5, 0.14, 0.42).translate(x, y + 0.05, z - 0.1), new THREE.MeshStandardMaterial({ color: cushionCols[i], roughness: 0.8 }));

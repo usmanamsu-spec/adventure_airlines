@@ -8,7 +8,7 @@ export const MISSIONS = [
   // ============================================================ 1. Test Flight over Plano
   {
     id: 'intro', title: 'Test Flight', place: 'Plano, TX', time: 'morning', icon: '🛫',
-    blurb: 'Musa, Ayra and Harun are visiting the Plano house. Take the cardboard plane for a quick spin around the neighborhood!',
+    blurb: 'Musa, Hassan, Ayra and Harun are visiting the Plano house. Take the cardboard plane for a quick spin around the neighborhood!',
     world: { ground: 0x74b04e, size: 1400 },
     build(w) {
       w.circle(0, -40, 17);

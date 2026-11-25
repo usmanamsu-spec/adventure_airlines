@@ -3,7 +3,7 @@
 A short 3D flying game for iPad starring the **Backyard Squadron**, all in matching red plaid pajamas, flying together in a giant cardboard-box plane:
 
 - **The Plano house:** Anaya Apa (the bossy big sister), Yusuf, Faris, Zainab
-- **The Greensboro house:** Musa, Ayra, Harun, and Ruman (not playable: he talks on the walkie-talkie and waits in the front yard)
+- **The Greensboro house:** Musa, Hassan, Ayra, Harun, and Ruman (not playable: he talks on the walkie-talkie and waits in the front yard)
 - **Also flying:** Baby Musa
 
 It runs in the browser, in **portrait (upright)**, and is built with [Three.js](https://threejs.org) and [Vite](https://vitejs.dev).
@@ -16,7 +16,7 @@ It runs in the browser, in **portrait (upright)**, and is built with [Three.js](
 
 1. Open the game on the iPad and hold it **upright**. It only plays in portrait.
 2. Tap **Share → Add to Home Screen**. It then opens full-screen like a real app.
-3. Pick who's flying today: any of the **8 kids**. The pilot sits up front and everyone else rides along (and talks the whole way). Each kid has their own save, stars and plane.
+3. Pick who's flying today: any of the **9 kids**. The pilot sits up front and everyone else rides along (and talks the whole way). Each kid has their own save, stars and plane.
 4. Tap **Start Engines!** Drag the stick on the left to steer and hold **BOOST** on the right.
 5. Want to steer by tilting? Go to ⚙️ Settings → **Tilt (gyro)**. First lock the screen rotation (hold the iPad upright, swipe down from the top-right corner, tap 🔒), or the screen will flip when you tilt.
 
@@ -40,7 +40,7 @@ The game helps kids out: big rainbow rings, gentle aim-assist toward the next ta
  Stars buy plane upgrades in the **Garage**: umbrella wings for tighter turns, a leaf-blower engine for a bigger boost tank, and flamingo floats for landing on water. The **Landing helper** setting makes landings easier.
 
 ### Missions
-The whole squad flies in every mission: whoever you pick is the pilot, and the other seven ride along and chat. The kids talk the whole way: hundreds of lines and family-aware banter. Anaya Apa bosses her Plano siblings from the back row, the Greensboro kids can't wait to show off their town, the little kids tell jokes and ask "are we there yet?", the littlest ones, Zainab and Baby Musa, say cute little words, and Ruman checks in on the walkie-talkie from the Greensboro house.
+The whole squad flies in every mission: whoever you pick is the pilot, and the other eight ride along and chat. The kids talk the whole way: hundreds of lines and family-aware banter. Anaya Apa bosses her Plano siblings from the back row, the Greensboro kids can't wait to show off their town, the little kids tell jokes and ask "are we there yet?", the littlest ones, Zainab and Baby Musa, say cute little words, and Ruman checks in on the walkie-talkie from the Greensboro house.
 
 | # | Mission | What happens |
 |---|---|---|

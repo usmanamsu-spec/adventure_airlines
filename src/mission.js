@@ -13,10 +13,10 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
 
 /** who sits where: Anaya Apa likes the back row where she can keep an eye on everyone */
-const SEAT_PREF = ['yusuf', 'musa', 'ayra', 'faris', 'harun', 'zainab', 'babymusa', 'anaya'];
+const SEAT_PREF = ['yusuf', 'musa', 'ayra', 'faris', 'harun', 'zainab', 'babymusa', 'hassan', 'anaya'];
 export function crewSeating(pilot) {
   const others = SEAT_PREF.filter(id => id !== pilot);
-  const seats = ['r1a', 'r1b', 'r2a', 'r2b', 'r3a', 'r3b', 'back'];
+  const seats = ['r1a', 'r1b', 'r2a', 'r2b', 'r3a', 'r3b', 'back2', 'back'];
   return others.map((id, i) => [id, seats[i]]);
 }
 
