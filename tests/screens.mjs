@@ -27,7 +27,7 @@ if (which === 'all' || which.includes('menus')) {
   await page.click('.garage-panel .done');
 }
 await page.evaluate(() => { const a = window.__bsq; a.player = a.player || 'yusuf'; a.profile.upgrades.floats = true; });
-const plan = { intro: 6, dallas: 20, memphis: 61, fall: 72, smokies: 96, pilot: 136, greensboro: 158, downtown: 178, home: 205 };
+const plan = { intro: 3.2, dallas: 20, memphis: 61, fall: 72, smokies: 96, pilot: 136, greensboro: 158, downtown: 178, home: 205 };
 const ids = Object.keys(plan);
 const idx = { intro: 0 };
 for (let i = 0; i < ids.length; i++) {

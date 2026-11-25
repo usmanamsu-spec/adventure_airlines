@@ -26,7 +26,7 @@ export const MISSIONS = [
       scatterTrees(w, -220, 40, 60, 70, 30, {}, (x, z) => ((x + 225) / 34) ** 2 + ((z - 40) / 50) ** 2 < 1);
       scatterTrees(w, 0, 0, 380, 380, 70, {}, (x, z) => Math.abs(x) < 30 || Math.hypot(x + 225, z - 40) < 60 || Math.abs(z - 230) < 25 || Math.abs(z + 170) < 25 || Math.abs(Math.abs(x) - 130) < 25);
       for (let i = 0; i < 8; i++) w.cloud(-400 + i * 110, 110 + (i % 3) * 15, -300 + (i * 97) % 600, 1);
-      label3d(w, 'Yusuf\'s House', 0, 18, -72, 4);
+      label3d(w, 'Yusuf\'s House', 0, 32, -72, 4);
       const rings = [[0, 20, -10], [-40, 24, 70], [-110, 26, 110], [-200, 22, 40], [-150, 20, -60], [-70, 18, -110]];
       return {
         spawn: { p: [0, 18, -140], h: 0 },
@@ -36,18 +36,6 @@ export const MISSIONS = [
         sock: [-225, 6, 40],
         bounds: { cx: 0, cz: 20, r: 520 },
       };
-    },
-    lines: {
-      yusuf: {
-        intro: ['Okay Captain Yusuf, I\'m buckled in back here!', 'Steer with the stick. Fly through the glowing rings!'],
-        at: { 2: 'Hold BOOST for juice-box power!', 4: 'Tap TRICK for a barrel roll! Do it!', 6: 'Last ring!' },
-        land: 'Now land on Sunny Lane. Let go of the stick and it lands itself!',
-      },
-      musa: {
-        intro: ['Captain Musa flying MY plane over MY street? Okay, I trust you!', 'Fly through the glowing rings!'],
-        at: { 2: 'Hold BOOST for juice-box power!', 4: 'Tap TRICK for a barrel roll! Wheee!', 6: 'Last ring!' },
-        land: 'Land on Sunny Lane. Let go of the stick and it lands itself!',
-      },
     },
   },
 
@@ -61,58 +49,6 @@ export const MISSIONS = [
       timeBlend: { from: 'afternoon', to: 'sunset', z0: 2300, z1: 4650 },
     },
     build: (w) => buildTrip(w),
-    lines: {
-      yusuf: {
-        intro: ['Next stop: MY house in Greensboro! Fly us there, Captain Yusuf!', 'Follow the rings and take photos at every landmark!'],
-        events: {
-          dallas: 'There\'s Dallas! Fly around the big glowing ball on Reunion Tower!',
-          littlerock: 'Little Rock and the Arkansas River! See the long bridge?',
-          mississippi: 'The Mississippi River! It\'s SO wide!',
-          memphis: 'A giant shiny PYRAMID in Memphis! Fly past the top!',
-          fall: 'Whoa, look at the trees! Red, orange, yellow... it\'s fall!',
-          nashville: 'Nashville! That building looks like Batman!',
-          smokies: 'The Smoky Mountains! See the mist? That\'s why they\'re called smoky.',
-          clingmans: 'That\'s Clingmans Dome! The tower with the swirly ramp!',
-          viaduct: 'The Blue Ridge Parkway! The road is floating around the mountain!',
-          pilot: 'Pilot Mountain! I can see it from Greensboro on clear days!',
-          greensboro: 'GREENSBORO! We\'re home! Well, MY home!',
-          guilford: 'That\'s the Guilford Courthouse battlefield. We go there on field trips!',
-          science: 'The Science Center! They have an aquarium AND a zoo!',
-          coliseum: 'The Coliseum! I saw a basketball game there!',
-          downtown: 'Downtown! That\'s Elm Street and the Carolina Theatre sign!',
-          lebauer: 'Fly UNDER the floating net at LeBauer Park!',
-          depot: 'The train depot! Wave at the train!',
-          aandt: 'N.C. A&T! Go Aggies!',
-          home: 'There\'s my street! The blue house is mine!',
-        },
-        land: 'Land on my street. Let go of the stick if you want it to land itself!',
-      },
-      musa: {
-        intro: ['Captain Musa, fly us all the way to your house in Greensboro!', 'Follow the rings and snap photos at every landmark!'],
-        events: {
-          dallas: 'Dallas! Fly around the glowing ball on Reunion Tower!',
-          littlerock: 'Little Rock! That\'s the Arkansas River down there!',
-          mississippi: 'The Mississippi River! It\'s ENORMOUS!',
-          memphis: 'A shiny pyramid?! In Memphis?! Fly by the top!',
-          fall: 'Musa, the trees changed color! It\'s like flying over candy!',
-          nashville: 'Nashville! That tower has Batman ears!',
-          smokies: 'The Smoky Mountains! The mist looks like smoke!',
-          clingmans: 'Clingmans Dome! Look at that swirly ramp tower!',
-          viaduct: 'A road that floats around the mountain! Cool!',
-          pilot: 'Pilot Mountain! Hey, we\'re pilots too!',
-          greensboro: 'Is this Greensboro?! It\'s so pretty at sunset!',
-          guilford: 'Whoa, a big old battlefield park with monuments!',
-          science: 'Is that your Science Center? With the glass dome?',
-          coliseum: 'That arena is HUGE!',
-          downtown: 'Downtown Greensboro! Look at that tall tower!',
-          lebauer: 'Fly UNDER that floating net! Do it!',
-          depot: 'Trains! Wave at the train!',
-          aandt: 'Is that a college? It has a clock tower!',
-          home: 'Is that your street? The blue house?',
-        },
-        land: 'Land on your street, Captain Musa! Let go of the stick to auto-land!',
-      },
-    },
   },
 ];
 

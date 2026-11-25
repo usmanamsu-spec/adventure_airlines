@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import './style.css';
-import { makeBoy, lookAt, setSlippers, BOYS } from './characters.js';
+import { makeBoy, lookAt, setSlippers, BOYS, KIDS } from './characters.js';
 import { buildPlane } from './plane.js';
 import { hotAirBalloon } from './world/props.js';
 import { Input } from './flight.js';
@@ -79,15 +79,20 @@ class App {
 
   // ------------------------------------------------------------ boot
   async boot() {
-    this.ui.loading('Building the cardboard plane…');
-    await nextFrame();
-    this.titleBoys = {
-      yusuf: makeBoy(BOYS.yusuf, { lod: 'hi' }),
-      musa: makeBoy(BOYS.musa, { lod: 'hi' }),
-    };
-    this.ui.loading('Ironing the pajamas…');
-    await nextFrame();
-    this.makePortraits();
+    this.titleBoys = {};
+    const msgs = ['Building a BIG cardboard plane…', 'Ironing 8 pairs of pajamas…', 'Finding everybody\'s slippers…', 'Packing snacks…', 'Telling Anaya Apa she\'s in charge…', 'Warming up the juice boxes…', 'Finding Baby Musa\'s binky…', 'Almost ready…'];
+    // full-detail models are only used for the portrait snapshots; the title screen uses lighter ones
+    this.portraitRig();
+    for (let i = 0; i < KIDS.length; i++) {
+      this.ui.loading(msgs[i % msgs.length]);
+      await nextFrame();
+      const hi = makeBoy(KIDS[i], { lod: 'hi' });
+      this.snapPortrait(KIDS[i], hi);
+      hi.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+      this.titleBoys[KIDS[i].id] = makeBoy(KIDS[i], { lod: 'lo' });
+    }
+    this.portraitR.dispose();
+    this.portraitR.forceContextLoss?.();
     this.buildTitleScene();
     this.state = 'title';
     this.ui.title();
@@ -95,7 +100,7 @@ class App {
     window.__ready = true;
   }
 
-  makePortraits() {
+  portraitRig() {
     const size = 256;
     const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true });
     r.setSize(size, size);
@@ -107,25 +112,29 @@ class App {
     const rim = new THREE.DirectionalLight(0xbfe0ff, 1.6); rim.position.set(2, 2, -2);
     scene.add(key, rim, new THREE.HemisphereLight(0xcfe8ff, 0x8a7a6a, 0.7));
     const cam = new THREE.PerspectiveCamera(22, 1, 0.05, 10);
-    for (const k of ['yusuf', 'musa']) {
-      const b = this.titleBoys[k];
+    this.portraitR = r; this.portraitScene = scene; this.portraitCam = cam;
+  }
+
+  snapPortrait(spec, b) {
+    const r = this.portraitR, scene = this.portraitScene, cam = this.portraitCam;
+    const k = spec.id;
+    {
       const rot = b.rotation.y;
       b.rotation.y = 0;
       scene.add(b);
       b.updateMatrixWorld(true);
       const head = new THREE.Vector3();
       b.userData.head.getWorldPosition(head);
-      cam.position.set(head.x + 0.05, head.y + 0.03, head.z + 0.95);
-      cam.lookAt(head.x, head.y - 0.03, head.z);
+      const hs = spec.R * (spec.scale || 1) / 0.152; // frame every head the same, big or small
+      cam.position.set(head.x + 0.05 * hs, head.y + 0.03 * hs + (spec.hair === 'long' ? -0.04 : 0), head.z + 0.95 * hs);
+      cam.lookAt(head.x, head.y - 0.03 * hs - (spec.hair === 'long' ? 0.04 : 0), head.z);
       lookAt(b, cam.position);
-      r.setClearColor(k === 'yusuf' ? 0xffd27a : 0x8fd3ff, 1);
+      r.setClearColor(new THREE.Color(spec.card[0]), 1);
       r.render(scene, cam);
       this.portraits[k] = r.domElement.toDataURL('image/png');
       scene.remove(b);
       b.rotation.y = rot;
     }
-    r.dispose();
-    r.forceContextLoss?.();
   }
 
   buildTitleScene() {
@@ -172,14 +181,19 @@ class App {
     tree.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
     s.add(tree);
     this.titlePlane = buildPlane({});
-    this.titlePlane.group.position.set(0.4, 0.21, -2.2);
+    this.titlePlane.group.position.set(0.6, 0.21, -3.6);
     this.titlePlane.group.rotation.y = -0.5;
     this.titlePlane.group.traverse(o => { if (o.isMesh) o.castShadow = true; });
     s.add(this.titlePlane.group);
-    const Y = this.titleBoys.yusuf, M = this.titleBoys.musa;
-    Y.position.set(-0.45, 0, 0); Y.rotation.y = 0.28;
-    M.position.set(0.5, 0, 0.05); M.rotation.y = -0.3;
-    for (const b of [Y, M]) { b.traverse(o => { if (o.isMesh) o.castShadow = true; }); s.add(b); }
+    // the whole squad: big kids in the back row, little ones in front
+    const spots = { anaya: [-1.05, -0.45, 0.25], yusuf: [-0.2, -0.4, 0.15], musa: [0.75, -0.45, -0.25], ayra: [-1.4, 0.55, 0.35],
+      harun: [-0.72, 0.6, 0.15], zainab: [-0.12, 0.7, 0.05], babymusa: [0.4, 0.72, -0.1], faris: [1.0, 0.6, -0.3] };
+    for (const [id, [x, z, ry]] of Object.entries(spots)) {
+      const b = this.titleBoys[id];
+      b.position.set(x, 0, z); b.rotation.y = ry;
+      b.traverse(o => { if (o.isMesh) o.castShadow = true; });
+      s.add(b);
+    }
     // colourful balloons drifting over the fence
     this.titleBalloons = [[0xff4f6a, 0xffd23f], [0x3fb8ff, 0xffffff, 0xff6ad5], [0x5fd35a, 0xffd23f, 0x8a5cff]].map((c, i) => {
       const b = hotAirBalloon(c, i + 1);
@@ -198,24 +212,25 @@ class App {
     const cam = this.titleCam;
     if (this.garageView) {
       // portrait: plane in the top half, garage panel below
-      cam.position.set(3.2 + Math.sin(t * 0.3) * 0.5, 5.2, 6.4);
-      cam.lookAt(0.2, -1.9, -2.6);
+      cam.position.set(4.6 + Math.sin(t * 0.3) * 0.5, 6.6, 6.6);
+      cam.lookAt(0.4, -2.4, -3.8);
     } else {
       // portrait framing: logo above, the boys in the middle, pilot cards below
       const tall = this.aspect < 0.8;
-      cam.position.set(Math.sin(t * 0.15) * 0.3 + 0.05, 1.0, tall ? 7.4 : 5.6);
-      cam.lookAt(0.05, tall ? 1.02 : 0.95, 0);
+      cam.position.set(Math.sin(t * 0.15) * 0.3 - 0.1, 1.35, tall ? 9.6 : 7);
+      cam.lookAt(-0.1, tall ? 0.15 : 0.55, 0);
     }
     // happy idle animation: bounce, sway, and a real wave
-    [[this.titleBoys.yusuf, 0], [this.titleBoys.musa, 1.4]].forEach(([b, ph]) => {
-      b.position.y = Math.abs(Math.sin(t * 2.2 + ph)) * 0.03;
-      b.rotation.z = Math.sin(t * 1.1 + ph) * 0.025;
+    const kids = Object.values(this.titleBoys);
+    kids.forEach((b, i) => {
+      const little = (b.userData.scale || 1) < 0.75;
+      b.position.y = Math.abs(Math.sin(t * (little ? 3.2 : 2.2) + i * 1.4)) * (little ? 0.05 : 0.03);
+      b.rotation.z = Math.sin(t * 1.1 + i * 1.4) * 0.025;
+      const wh = b.userData.waveHand;
+      if (wh) wh.quaternion.copy(wh.userData.baseQ).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin(t * 7 + i) * 0.45));
     });
-    const wh = this.titleBoys.yusuf.userData.waveHand;
-    if (wh) wh.quaternion.copy(wh.userData.baseQ).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin(t * 7) * 0.45));
     this.titleBalloons.forEach((b, i) => { b.position.x += dt * (0.25 + i * 0.1); if (b.position.x > 16) b.position.x = -16; b.position.y = 9 + i * 1.5 + Math.sin(t * 0.6 + i) * 0.6; });
-    lookAt(this.titleBoys.yusuf, cam.position);
-    lookAt(this.titleBoys.musa, cam.position);
+    kids.forEach(b => lookAt(b, cam.position));
     this.titlePlane.update(dt, 4, false);
   }
 
@@ -252,7 +267,7 @@ class App {
     const p = this.profile;
     this.titleScene.remove(this.titlePlane.group);
     this.titlePlane = buildPlane({ upgrades: p.upgrades, paint: p.paint });
-    this.titlePlane.group.position.set(0.4, 0.21 + (p.upgrades.floats ? 0.32 : 0), -2.2);
+    this.titlePlane.group.position.set(0.6, 0.21 + (p.upgrades.floats ? 0.32 : 0), -3.6);
     this.titlePlane.group.rotation.y = -0.5;
     this.titlePlane.group.traverse(o => { if (o.isMesh) o.castShadow = true; });
     this.titleScene.add(this.titlePlane.group);

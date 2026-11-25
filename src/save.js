@@ -1,12 +1,15 @@
 // Progress is stored on the device only (localStorage). No accounts, no network.
 import { MISSIONS } from './levels.js';
 import { UPGRADES, PAINTS } from './plane.js';
+import { NAMES } from './dialogue.js';
+
+const IDS = Object.keys(NAMES);
 
 const KEY = 'backyard-squadron-v1';
 
 const newProfile = () => ({ missions: {}, upgrades: { wings: false, blower: false, floats: false }, paint: 'cardboard', paints: ['cardboard'], spent: 0, seenEnding: false });
 const defaults = () => ({
-  profiles: { yusuf: newProfile(), musa: newProfile() },
+  profiles: Object.fromEntries(IDS.map(id => [id, newProfile()])),
   settings: { controls: null, sensitivity: 1, invert: false, assist: true, easy: true, graphics: 'fancy', sound: true, music: true },
   last: null,
 });
@@ -19,7 +22,7 @@ export const store = {
       if (raw) {
         const d = JSON.parse(raw);
         const base = defaults();
-        this.data = { ...base, ...d, settings: { ...base.settings, ...d.settings }, profiles: { yusuf: { ...newProfile(), ...d.profiles?.yusuf }, musa: { ...newProfile(), ...d.profiles?.musa } } };
+        this.data = { ...base, ...d, settings: { ...base.settings, ...d.settings }, profiles: Object.fromEntries(IDS.map(id => [id, { ...newProfile(), ...d.profiles?.[id] }])) };
       }
     } catch { this.data = defaults(); }
     return this.data;

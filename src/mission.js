@@ -4,11 +4,20 @@ import { World, textSprite } from './world/kit.js';
 import { juiceBox, sock as sockMesh, iceCream, firefly, fishingHat, glowTexture } from './world/props.js';
 import { buildPlane } from './plane.js';
 import { Flight, BASE_SPEED } from './flight.js';
+import { SCRIPTS, resolveSpeaker, fillText, isLittle } from './dialogue.js';
 import { clamp, damp, wrapAngle, DEG, lerp } from './util.js';
 import { Confetti, Puffs, birdFlock, addTraffic, candy, rainbowRing, Shockwaves, Fireworks, skyRainbow, Leaves } from './fx.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
+
+/** who sits where: Anaya Apa likes the back row where she can keep an eye on everyone */
+const SEAT_PREF = ['yusuf', 'musa', 'ayra', 'faris', 'harun', 'zainab', 'babymusa', 'anaya'];
+export function crewSeating(pilot) {
+  const others = SEAT_PREF.filter(id => id !== pilot);
+  const seats = ['r1a', 'r1b', 'r2a', 'r2b', 'r3a', 'r3b', 'back'];
+  return others.map((id, i) => [id, seats[i]]);
+}
 
 export class MissionRun {
   constructor(app, def, player) {
@@ -16,7 +25,6 @@ export class MissionRun {
     this.def = def;
     this.player = player;
     this.buddy = player === 'yusuf' ? 'musa' : 'yusuf';
-    this.lines = def.lines[player];
     this.profile = app.profile;
     this.settings = app.settings;
     this.t = 0;
@@ -61,11 +69,12 @@ export class MissionRun {
     plane.setNight(!!S.night);
     this.plane = plane;
     this.scene.add(plane.group);
-    // both boys fly together: the player is the pilot up front, the buddy rides in the back
+    // the whole squad flies together: the chosen kid is the pilot, everyone else has a seat
     this.pilotModel = this.app.getBoy(this.player, 'drive');
-    this.seat(this.pilotModel, plane.seats.front);
-    this.passenger = this.app.getBoy(this.buddy, 'ride');
-    this.seat(this.passenger, plane.seats.back);
+    this.seat(this.pilotModel, plane.seats.pilot);
+    this.crew = crewSeating(this.player);
+    this.passengers = this.crew.map(([id, seat]) => { const m = this.app.getBoy(id, 'ride'); this.seat(m, plane.seats[seat]); return m; });
+    this.passenger = this.passengers[0];
     this.speaker = this.buddy;
 
     // objectives
@@ -128,7 +137,9 @@ export class MissionRun {
   }
 
   seat(model, anchor) {
-    model.position.set(0, -model.userData.hipY + 0.02, -0.05);
+    // little kids get a booster cushion so they can see out
+    model.position.set(0, -model.userData.hipY + 0.02 + (1 - (model.userData.scale || 1)) * 0.42, -0.05);
+    model.userData.baseY = undefined;
     model.rotation.set(0, 0, 0);
     anchor.add(model);
   }
@@ -265,14 +276,34 @@ export class MissionRun {
     this.countdown = 3.2;
     this.lastCount = 4;
     this.app.input.recenter();
-    const intro = this.lines.intro || [];
-    intro.forEach((l, i) => this.say(l, i * 3.4 + 0.2));
+    this.chat(isLittle(this.player) && SCRIPTS[`${this.def.id}.introBaby`] ? `${this.def.id}.introBaby` : `${this.def.id}.intro`, { priority: 2 });
     this.updateHud(true);
   }
 
-  say(text, delay = 0) {
-    if (!text) return;
-    this.events.push({ at: this.t + delay, fn: () => this.app.hud.say(this.speaker, text) });
+  /**
+   * Play a little conversation between the passengers.
+   * priority 0: chit-chat, skipped if someone is already talking; 1: normal; 2: important (always queued).
+   */
+  chat(key, { priority = 1 } = {}) {
+    const variants = SCRIPTS[key];
+    if (!variants) return;
+    const busy = this.t < (this.chatBusy || 0);
+    if (busy && priority === 0) return;
+    if (busy && priority === 1 && this.chatBusy - this.t > 4) return;
+    const conv = variants[Math.floor(Math.random() * variants.length)];
+    let at = Math.max(this.t + 0.1, this.chatBusy || 0);
+    let prev = null;
+    for (const [who0, text0] of conv) {
+      const who = resolveSpeaker(who0, this.player, prev ? [prev] : []);
+      if (!who) continue;
+      const text = fillText(text0, who, this.player);
+      const dur = 1.3 + text.length * 0.042;
+      this.events.push({ at, fn: () => { this.app.hud.say(who, text, (dur + 0.4) * 1000); this.talking = who; this.talkUntil = this.t + dur; } });
+      at += dur + 0.2;
+      prev = who;
+    }
+    this.chatBusy = at;
+    this.lastChat = at;
   }
 
   respawnTo(p, h) {
@@ -353,6 +384,8 @@ export class MissionRun {
 
     this.time += dt;
     this.invuln = Math.max(0, this.invuln - dt);
+    if (this.talking && this.t > this.talkUntil) this.talking = null;
+    if (this.phase === 'fly' && this.t - (this.lastChat || 0) > 16 && this.t > (this.chatBusy || 0)) this.chat('banter', { priority: 0 });
     const F = this.flight;
     const easy = !this.autopilot && this.settings.easy !== false;
     let input = this.autopilot ? this.autoInput() : this.app.input;
@@ -521,7 +554,7 @@ export class MissionRun {
           return;
         }
         this.app.hud.banner('Lawn Dart! Come in more gently', 'warn', 1800);
-        this.app.hud.say(this.speaker, 'Whoa! Too steep! Try again, nice and slow.');
+        this.chat('lawndart', { priority: 1 });
       }
     }
     F.pos.y = g + 1.4;
@@ -541,8 +574,8 @@ export class MissionRun {
     this.tape -= 1;
     this.app.hud.damage();
     if (this.tape <= 0) { this.crash(); return; }
-    if (this.tape === 1) this.app.hud.say(this.speaker, 'One roll of tape left! Careful!');
-    else if (Math.random() < 0.5) this.app.hud.say(this.speaker, ['Ow! My duct tape!', 'Bonk! Still flying!', 'Careful! That\'s cardboard!'][Math.floor(Math.random() * 3)]);
+    if (this.tape === 1) this.chat('tapeLow', { priority: 1 });
+    else if (Math.random() < 0.6) this.chat('bump', { priority: 0 });
     void kind;
   }
 
@@ -552,6 +585,7 @@ export class MissionRun {
     this.crashT = 2.2;
     this.app.sound.crash();
     this.app.hud.banner('It fell apart!', 'bad', 1800);
+    this.chat('crash', { priority: 1 });
     this.plane.group.visible = false;
     const mat = new THREE.MeshStandardMaterial({ color: 0xc89a5c, roughness: 0.9 });
     for (let i = 0; i < 14; i++) {
@@ -594,7 +628,8 @@ export class MissionRun {
     const msgs = { butter: 'BUTTER LANDING!', bumpy: 'Bumpy landing!', pancake: 'Pancake landing!' };
     this.app.hud.banner(msgs[grade], grade === 'butter' ? 'good' : 'ok', 2400);
     this.app.sound.fanfare();
-    if (this.hat) { this.hat.visible = false; this.app.hud.say(this.speaker, 'Got Grandpa\'s hat! He\'s gonna be so happy!'); }
+    this.chatBusy = this.t;
+    this.chat(grade === 'butter' ? 'landedButter' : 'landedOk', { priority: 2 });
     this.addScore({ butter: 300, bumpy: 150, pancake: 60 }[grade], grade === 'butter' ? 'Butter bonus' : 'Landing');
     this.confetti.burst(F.pos.clone().add(V(0, 2, 0)), 160, 12, 9, 1.4);
     this.fireworks.launch(F.pos.clone().addScaledVector(V(Math.sin(F.h), 0, Math.cos(F.h)), 40), 7);
@@ -632,9 +667,8 @@ export class MissionRun {
         this.app.sound.whoosh();
         this.cheerT = 0.8;
         this.pickup(100, o.photo && o.photo.includes(o.count - 1) ? 'Click! 📸' : 'Ring!');
-        const line = this.lines.at && this.lines.at[o.count];
-        if (line) this.say(line);
-        else if (o.count < o.total && Math.random() < 0.35) this.app.hud.say(this.speaker, ['Nice!', 'Woo-hoo!', 'Smooth flying!', 'Bullseye!', 'Yes!'][Math.floor(Math.random() * 5)]);
+        if (SCRIPTS[`${this.def.id}.at${o.count}`]) this.chat(`${this.def.id}.at${o.count}`, { priority: 2 });
+        else if (o.count < o.total && Math.random() < 0.4) this.chat('ring', { priority: 0 });
         if (o.count >= o.total) this.completeObjective();
       }
     } else if (o.type === 'collect') {
@@ -648,8 +682,7 @@ export class MissionRun {
           this.confetti.burst(it.m.position.clone().addScaledVector(F.forward(), 8), 40, 7, 4);
           this.pickup(100, o.kind === 'firefly' ? 'Firefly!' : 'Delivered! 🍦');
           this.checkpoint = { p: F.pos.clone(), h: F.h };
-          const line = this.lines.at && this.lines.at[o.count];
-          if (line) this.say(line);
+          if (SCRIPTS[`${this.def.id}.at${o.count}`]) this.chat(`${this.def.id}.at${o.count}`, { priority: 2 });
           if (o.count >= o.total) { this.completeObjective(); break; }
         }
       }
@@ -666,8 +699,7 @@ export class MissionRun {
         this.cheerT = 1.2;
         this.pickup(200, 'TAG!');
         this.checkpoint = { p: F.pos.clone().setY(Math.max(F.pos.y, this.groundAt(F.pos) + 25)), h: F.h };
-        const line = this.lines.events && this.lines.events['tag' + o.count];
-        if (line) this.app.hud.say(this.speaker, line);
+        this.chat('ring', { priority: 0 });
         if (o.count >= o.total) { o.marker.visible = false; this.completeObjective(); }
       }
     }
@@ -693,7 +725,7 @@ export class MissionRun {
       this.phase = 'land';
       this.zone.g.visible = true;
       this.app.hud.banner(this.spec.landing.text, 'good', 2600);
-      this.say(this.lines.land, 1.2);
+      this.chat(`${this.def.id}.land`, { priority: 2 });
     }
     this.updateHud(true);
   }
@@ -764,7 +796,7 @@ export class MissionRun {
         this.candiesGot++;
         this.puffs.sparkle(c.position, 8, 2);
         this.pickup(25, null);
-        if (this.candiesGot === this.candyNeed) { this.app.hud.banner('Candy star! ⭐🍬', 'good', 1600); this.app.sound.fanfare(); }
+        if (this.candiesGot === this.candyNeed) { this.app.hud.banner('Candy star! ⭐🍬', 'good', 1600); this.app.sound.fanfare(); this.chat('candyStar', { priority: 0 }); }
       }
     }
   }
@@ -778,7 +810,7 @@ export class MissionRun {
     if (this.combo >= 3 && (this.combo === 3 || this.combo % 5 === 0)) {
       this.app.hud.combo(this.combo);
       if (this.combo >= 5) this.fireworks.launch(this.flight.pos.clone().addScaledVector(this.flight.forward(), 70).setY(this.groundAt(this.flight.pos)), 2);
-      if (this.combo >= 10) this.app.hud.say(this.speaker, ['COMBO! You\'re on fire!', 'Keep the combo going!', 'Unstoppable!'][Math.floor(Math.random() * 3)]);
+      if (this.combo >= 10) this.chat('combo', { priority: 0 });
     }
   }
 
@@ -794,7 +826,7 @@ export class MissionRun {
     this.confetti.burst(this.plane.group.localToWorld(V(0, 1.5, 4)), 30, 7, 2);
     this.cheerT = 1;
     this.pickup(150, 'Barrel roll!');
-    if (Math.random() < 0.5) this.app.hud.say(this.speaker, ['WHOA! Barrel roll!', 'Do it again! DO IT AGAIN!', 'My stomach did a flip!', 'Show-off! I love it!'][Math.floor(Math.random() * 4)]);
+    this.chat('trick', { priority: 0 });
   }
 
   // ------------------------------------------------------------ easy flying
@@ -809,7 +841,7 @@ export class MissionRun {
     if (this.phase === 'land' && this.idleT > 0.6) out.roll = ai.roll;
     // flying: after a moment with no steering, drift toward the next target
     else if (this.phase === 'fly' && this.idleT > 1.2) out.roll = ai.roll * 0.7;
-    if (this.phase === 'land' && !this.landTipT) { this.landTipT = 1; this.app.hud.say(this.speaker, 'Let go of the stick and the plane will land itself!'); }
+    if (this.phase === 'land' && !this.landTipT) { this.landTipT = 1; this.chat('autoland', { priority: 1 }); }
     return out;
   }
 
@@ -887,7 +919,7 @@ export class MissionRun {
       this.confetti.burst(this.sock.position, 80, 12, 6);
       this.addScore(500, 'Lost sock!');
       this.app.hud.banner('You found a LOST SOCK! 🧦', 'good', 2200);
-      this.app.hud.say(this.speaker, 'A lost sock! Gross. AWESOME.');
+      this.chat('sock', { priority: 1 });
     }
   }
 
@@ -896,8 +928,7 @@ export class MissionRun {
     const z = this.flight.pos.z;
     while (this.progress.length && z > this.progress[0][0]) {
       const [, key] = this.progress.shift();
-      const line = this.lines.events && this.lines.events[key];
-      if (line) this.app.hud.say(this.speaker, line);
+      this.chat(`${this.def.id}.${key}`, { priority: 2 });
       if (key.startsWith('state:')) this.app.hud.banner('Welcome to ' + key.slice(6) + '!', 'good', 2200);
     }
   }
@@ -962,13 +993,16 @@ export class MissionRun {
       hd.rotation.y = damp(hd.rotation.y, -this.flight.r * 0.6, 3, dt);
       hd.rotation.z = damp(hd.rotation.z, -this.flight.r * 0.3, 3, dt);
     }
-    if (this.passenger) {
-      const hd = this.passenger.userData.head;
-      hd.rotation.y = Math.sin(t * 0.5) * 0.5;
-    }
+    // passengers look around; whoever is talking turns toward the pilot
+    (this.passengers || []).forEach((m, i) => {
+      const hd = m.userData.head;
+      const talking = this.talking === this.crew[i][0];
+      hd.rotation.y = talking ? damp(hd.rotation.y, (m.parent.position.x > 0 ? 0.35 : -0.35), 6, dt) : Math.sin(t * 0.5 + i * 1.7) * 0.5;
+      hd.rotation.x = talking ? Math.sin(t * 14) * 0.05 : 0;
+    });
     // happy bouncing, and big cheers when something good happens
     const jump = this.cheerT > 0 ? Math.abs(Math.sin(this.cheerT * 9)) * 0.14 : 0;
-    for (const [m, ph] of [[this.pilotModel, 0], [this.passenger, 1.3]]) {
+    for (const [m, ph] of [[this.pilotModel, 0], ...(this.passengers || []).map((p, i) => [p, 1.3 + i * 0.9])]) {
       if (!m) continue;
       if (m.userData.baseY === undefined) m.userData.baseY = m.position.y;
       m.position.y = m.userData.baseY + Math.abs(Math.sin(t * 4 + ph)) * 0.025 + jump;
@@ -984,8 +1018,8 @@ export class MissionRun {
     const right = V(-flat.z, 0, flat.x);
     const landed = this.phase === 'landed';
     const tall = this.camera.aspect < 1;
-    const dist = (landed ? 9 : 7.2 + (F.boosting ? 1.6 : 0)) + (tall ? 1.2 : 0);
-    const want = F.pos.clone().addScaledVector(flat, -dist).add(V(0, (landed ? 3.6 : 2.5 - F.p * 3) + (tall ? 0.7 : 0), 0)).addScaledVector(right, F.r * 1.2);
+    const dist = (landed ? 12 : 10 + (F.boosting ? 1.8 : 0)) + (tall ? 1.4 : 0); // the squad's plane is big
+    const want = F.pos.clone().addScaledVector(flat, -dist).add(V(0, (landed ? 4.6 : 3.4 - F.p * 3) + (tall ? 0.8 : 0), 0)).addScaledVector(right, F.r * 1.2);
     const g = this.groundAt(want) + 1.5;
     if (want.y < g) want.y = g;
     let look = F.pos.clone().addScaledVector(f, 10).add(V(0, 1.4, 0));
@@ -1070,7 +1104,7 @@ export class MissionRun {
   dispose() {
     this.app.sound.stopEngine();
     if (this.pilotModel) this.pilotModel.parent?.remove(this.pilotModel);
-    if (this.passenger) this.passenger.parent?.remove(this.passenger);
+    (this.passengers || []).forEach(m => m.parent?.remove(m));
     this.world.dispose();
     this.scene.traverse(o => { if (o.geometry && !o.userData.keep) o.geometry.dispose?.(); });
   }

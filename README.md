@@ -1,6 +1,6 @@
 # ✈️ Backyard Squadron
 
-A short 3D flying game for iPad starring **Yusuf** (Plano, TX) and **Musa** (Greensboro, NC), two best friends in matching red plaid pajamas who fly a cardboard-box plane. It runs in the browser, in **portrait (upright)**, and is built with [Three.js](https://threejs.org) and [Vite](https://vitejs.dev).
+A short 3D flying game for iPad starring the **Backyard Squadron**: Yusuf (10, Plano TX), Musa (10, Greensboro NC), Anaya Apa (13, the bossy big sister), Ayra (5), Harun (5), Faris (5), Zainab (2) and Baby Musa (1). They all wear matching red plaid pajamas and fly together in a giant cardboard-box plane. It runs in the browser, in **portrait (upright)**, and is built with [Three.js](https://threejs.org) and [Vite](https://vitejs.dev).
 
 ![Title screen](docs/screenshots/title.png)
 
@@ -10,7 +10,7 @@ A short 3D flying game for iPad starring **Yusuf** (Plano, TX) and **Musa** (Gre
 
 1. Open the game on the iPad and hold it **upright**. It only plays in portrait.
 2. Tap **Share → Add to Home Screen**. It then opens full-screen like a real app.
-3. Pick who's flying today: **Yusuf** or **Musa**. Each boy has his own save, stars and plane.
+3. Pick who's flying today: any of the **8 kids**. The pilot sits up front and everyone else rides along (and talks the whole way). Each kid has their own save, stars and plane.
 4. Tap **Start Engines!** Drag the stick on the left to steer and hold **BOOST** on the right.
 5. Want to steer by tilting? Go to ⚙️ Settings → **Tilt (gyro)**. First lock the screen rotation (hold the iPad upright, swipe down from the top-right corner, tap 🔒), or the screen will flip when you tilt.
 
@@ -33,7 +33,7 @@ The game helps kids out: big rainbow rings, gentle aim-assist toward the next ta
  Stars buy plane upgrades in the **Garage**: umbrella wings for tighter turns, a leaf-blower engine for a bigger boost tank, and flamingo floats for landing on water. The **Landing helper** setting makes landings easier.
 
 ### Missions
-Both boys fly in every mission: whoever is playing pilots up front, and the other rides in the back seat.
+The whole squad flies in every mission: whoever you pick is the pilot, and the other seven ride along and chat. Anaya Apa bosses everyone from the back row, the 5-year-olds ask "are we there yet?", and Zainab and Baby Musa say cute little words.
 
 | # | Mission | What happens |
 |---|---|---|

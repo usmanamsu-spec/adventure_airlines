@@ -1,5 +1,5 @@
 // In-flight heads-up display (DOM overlay, laid out for iPad portrait).
-const NAMES = { yusuf: 'Yusuf', musa: 'Musa' };
+import { NAMES } from './dialogue.js';
 
 export class Hud {
   constructor(root, app) {
@@ -98,7 +98,7 @@ export class Hud {
   }
   say(who, text, ms = 3600) {
     this.face.src = this.app.portraits[who] || '';
-    this.who.textContent = NAMES[who] + ' · back seat';
+    this.who.textContent = NAMES[who];
     this.said.textContent = text;
     this.bubble.classList.remove('hidden');
     this.bubble.classList.remove('pop'); void this.bubble.offsetWidth; this.bubble.classList.add('pop');

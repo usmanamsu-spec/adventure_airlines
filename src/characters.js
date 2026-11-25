@@ -308,7 +308,7 @@ export function makeBoy(spec, opts = {}) {
   const g = spec.girth, h = spec.height;
   const R = spec.R;
   const r = rng(spec.seed);
-  const arms = opts.arms || (spec.pose === 'wave' ? { R: 'wave', L: 'relaxed' } : spec.pose === 'hip' ? { R: 'hip', L: 'relaxed' } : { R: 'relaxed', L: 'relaxed' });
+  const arms = opts.arms || spec.arms || (spec.pose === 'wave' ? { R: 'wave', L: 'relaxed' } : spec.pose === 'hip' ? { R: 'hip', L: 'relaxed' } : { R: 'relaxed', L: 'relaxed' });
   const legs = opts.legs || 'stand';
   const slippers = opts.slippers || spec.slippers;
   const Q = lo ? 0.5 : 1; // tessellation quality
@@ -505,7 +505,10 @@ export function makeBoy(spec, opts = {}) {
   head.position.set(0, Y(1.1) + R * 0.93, 0.014);
   head.rotation.set(...(opts.headTilt || spec.headTilt));
   boy.userData.head = head;
-  boy.userData.hipY = Y(0.56);
+  const scale = spec.scale || 1;
+  boy.scale.setScalar(scale);
+  boy.userData.hipY = Y(0.56) * scale;
+  boy.userData.scale = scale;
   boy.userData.spec = spec;
   return boy;
 }
@@ -734,38 +737,48 @@ function buildHead(head, spec, skinHead, skin, skinDark, r, lo) {
 const HAIRLINE = {
   straight: [[0, 0.5], [0.5, 0.43], [0.9, 0.24], [1.25, 0.12], [1.45, 0.02], [1.75, -0.12], [2.3, -0.42], [Math.PI, -0.56]],
   neat: [[0, 0.52], [0.5, 0.45], [0.9, 0.3], [1.25, 0.18], [1.45, 0.08], [1.75, -0.05], [2.3, -0.35], [Math.PI, -0.5]],
+  long: [[0, 0.52], [0.5, 0.44], [0.9, 0.26], [1.25, 0.14], [1.45, 0.04], [1.75, -0.1], [2.3, -0.4], [Math.PI, -0.55]],
+  pigtails: [[0, 0.54], [0.5, 0.46], [0.9, 0.3], [1.25, 0.18], [1.45, 0.08], [1.75, -0.06], [2.3, -0.36], [Math.PI, -0.5]],
+  spiky: [[0, 0.55], [0.5, 0.47], [0.9, 0.32], [1.25, 0.2], [1.45, 0.1], [1.75, -0.02], [2.3, -0.3], [Math.PI, -0.45]],
+  curly: [[0, 0.53], [0.5, 0.45], [0.9, 0.29], [1.25, 0.17], [1.45, 0.07], [1.75, -0.06], [2.3, -0.36], [Math.PI, -0.5]],
+  baby: [[0, 0.68], [0.5, 0.62], [0.9, 0.48], [1.25, 0.36], [1.45, 0.28], [1.75, 0.18], [2.3, -0.05], [Math.PI, -0.15]],
 };
 function hairlineY(n, style) {
   const phi = Math.abs(Math.atan2(n.x, n.z));
-  const k = HAIRLINE[style];
+  const k = HAIRLINE[style] || HAIRLINE.neat;
   for (let i = 0; i < k.length - 1; i++) {
     if (phi <= k[i + 1][0]) return lerp(k[i][1], k[i + 1][1], smooth(k[i][0], k[i + 1][0], phi));
   }
   return k[k.length - 1][1];
 }
 
+/**
+ * Hair styles: straight (Yusuf), neat side part (Musa), long (Anaya), pigtails (Ayra, Zainab),
+ * spiky (Faris), curly (Harun), baby fuzz (Baby Musa). All built from tapered clumps that follow the scalp.
+ */
 function buildHair(head, spec, sculpt, r, lo) {
   const R = spec.R;
   const sc = R / 0.124;
   const style = spec.hair;
-  const straight = style === 'straight';
+  const glossy = style === 'straight' || style === 'long';
   const S = (n, k = 1) => sculpt(n).multiplyScalar(R * k);
 
   const hairMat = lo
-    ? new THREE.MeshStandardMaterial({ vertexColors: true, roughness: straight ? 0.6 : 0.95 })
+    ? new THREE.MeshStandardMaterial({ vertexColors: true, roughness: glossy ? 0.6 : 0.95 })
     : new THREE.MeshPhysicalMaterial({
-      vertexColors: true, roughness: straight ? 0.55 : 0.92,
-      sheen: straight ? 0.7 : 0.15, sheenRoughness: 0.5, sheenColor: new THREE.Color(0x6a4a34),
+      vertexColors: true, roughness: glossy ? 0.5 : 0.92,
+      sheen: glossy ? 0.75 : 0.15, sheenRoughness: 0.5, sheenColor: new THREE.Color(0x6a4a34),
     });
-  const baseCol = new THREE.Color(0x17110e);
+  const baseCol = new THREE.Color(spec.hairColor || 0x17110e);
 
+  // scalp cap
   {
     const geo = new THREE.SphereGeometry(1, lo ? 90 : 200, lo ? 64 : 140);
     const p = geo.attributes.position;
     const keep = [];
     for (let i = 0; i < p.count; i++) {
       const n = V(p.getX(i), p.getY(i), p.getZ(i)).normalize();
-      const q = S(n, 1.012);
+      const q = S(n, style === 'baby' ? 1.004 : 1.012);
       p.setXYZ(i, q.x, q.y, q.z);
       keep.push(n.y - hairlineY(n, style));
     }
@@ -776,15 +789,30 @@ function buildHair(head, spec, sculpt, r, lo) {
     geo.setIndex(out);
     geo.computeVertexNormals();
     const cols = new Float32Array(p.count * 3);
-    for (let i = 0; i < p.count; i++) { cols[i * 3] = baseCol.r * 0.9; cols[i * 3 + 1] = baseCol.g * 0.9; cols[i * 3 + 2] = baseCol.b * 0.9; }
+    const k = style === 'baby' ? 1.25 : 0.9;
+    for (let i = 0; i < p.count; i++) { cols[i * 3] = baseCol.r * k; cols[i * 3 + 1] = baseCol.g * k; cols[i * 3 + 2] = baseCol.b * k; }
     geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
     mesh(geo, hairMat, head);
   }
 
+  const counts = { straight: 380, neat: 500, long: 520, pigtails: 460, spiky: 320, curly: 560, baby: 90 };
   const geos = [];
-  const N = Math.round((straight ? 380 : 500) * (lo ? 0.42 : 1));
+  const N = Math.round((counts[style] || 400) * (lo ? 0.42 : 1));
   const crown = V(0.12, 0.75, -0.64).normalize();
   const tangentize = (v, n) => v.addScaledVector(n, -v.dot(n)).normalize();
+  const addClump = (pts, width, flat, taper, shade, tipLight = 1) => {
+    const geo = tube(pts, (t) => width * Math.pow(1 - t, taper) * (t < 0.08 ? 0.75 + t * 3 : 1) + 0.0004,
+      { tubular: lo ? Math.max(8, pts.length) : Math.max(18, pts.length * 2), radial: lo ? 6 : 10, flat, up: (P) => P.clone().normalize() });
+    const cnt = geo.attributes.position.count, cols = new Float32Array(cnt * 3);
+    for (let i = 0; i < cnt; i++) {
+      const l = shade * (1 + (tipLight - 1) * geo.attributes.uv.getY(i));
+      cols[i * 3] = baseCol.r * l; cols[i * 3 + 1] = baseCol.g * l; cols[i * 3 + 2] = baseCol.b * l;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+    geo.deleteAttribute('uv');
+    geos.push(geo);
+  };
+
   let made = 0, guard = 0;
   while (made < N && guard++ < 20000) {
     const n = V(r() * 2 - 1, r() * 2 - 1, r() * 2 - 1);
@@ -794,36 +822,58 @@ function buildHair(head, spec, sculpt, r, lo) {
     if (n.y < yh + 0.015) continue;
     if (n.y > yh + 0.14 && r() < 0.35) continue;
     const front = smooth(0.2, 0.7, n.z) * smooth(0.2, 0.45, n.y);
-    let flow, L, lift0, liftAmp, gravity, width;
-    if (straight) {
-      // thick, straight, a little messy: falls away from the crown, bangs across the forehead
+    let flow, L, lift0 = 0.008, liftAmp = 0.004, gravity = 0, width = 0.018 * sc, curl = 0, flat = 0.2, taper = 0.5, tipLight = 1, out = 0;
+    let fall = 0; // long hair: how far it hangs below the head
+    if (style === 'straight') {
       flow = tangentize(n.clone().sub(crown), n);
-      const bang = tangentize(V(0.2 * (r() - 0.5), -0.6, 1), n);
-      flow.lerp(bang, front).normalize();
+      flow.lerp(tangentize(V(0.2 * (r() - 0.5), -0.6, 1), n), front).normalize();
       flow.applyAxisAngle(n, (r() - 0.5) * 0.45);
       L = lerp(0.085, 0.13, r()) * sc * (1 - 0.58 * front);
-      lift0 = 0.012 + r() * 0.006;
-      liftAmp = 0.008 + r() * 0.01;
-      gravity = 0.32;
-      width = lerp(0.022, 0.032, r()) * sc;
-      if (n.y > 0.8 && r() < 0.22) { L *= 0.45; gravity = 0; liftAmp = 0.03; } // a few messy tufts at the crown
+      lift0 = 0.012 + r() * 0.006; liftAmp = 0.008 + r() * 0.01; gravity = 0.32;
+      width = lerp(0.022, 0.032, r()) * sc; flat = 0.22; taper = 0.55; tipLight = 1.25;
+      if (n.y > 0.8 && r() < 0.22) { L *= 0.45; gravity = 0; liftAmp = 0.03; }
+    } else if (style === 'long') {
+      // long hair with a middle part, side-swept bangs, falling past the shoulders
+      flow = tangentize(V(Math.sign(n.x || 1) * 0.8, -1, -0.25), n);
+      flow.lerp(tangentize(V(Math.sign(n.x || 1) * 1, -0.5, 0.2), n), front).normalize();
+      flow.applyAxisAngle(n, (r() - 0.5) * 0.25);
+      L = lerp(0.16, 0.22, r()) * sc * (1 - 0.6 * front);
+      lift0 = 0.01 + r() * 0.006; liftAmp = 0.006; gravity = 0.6;
+      width = lerp(0.024, 0.032, r()) * sc; flat = 0.2; taper = 0.45; tipLight = 1.2;
+      fall = n.z < 0.45 ? lerp(0.12, 0.2, r()) * sc : 0;
+    } else if (style === 'pigtails') {
+      // parted in the middle and combed toward two pigtails above the ears
+      const side = Math.sign(n.x || 1);
+      flow = tangentize(V(side * 1, -0.35, -0.35), n);
+      flow.applyAxisAngle(n, (r() - 0.5) * 0.12);
+      L = lerp(0.05, 0.08, r()) * sc;
+      lift0 = 0.006; liftAmp = 0.003; width = lerp(0.016, 0.022, r()) * sc; flat = 0.16;
+    } else if (style === 'spiky') {
+      flow = tangentize(V(0, 1, 0.6), n);
+      flow.applyAxisAngle(n, (r() - 0.5) * 1.2);
+      L = lerp(0.03, 0.05, r()) * sc;
+      lift0 = 0.006; liftAmp = 0; width = lerp(0.016, 0.024, r()) * sc; flat = 0.5; taper = 0.9; out = lerp(0.04, 0.07, r()) * sc;
+    } else if (style === 'curly') {
+      flow = tangentize(V(r() - 0.5, r() - 0.5, r() - 0.5), n);
+      L = lerp(0.04, 0.06, r()) * sc;
+      lift0 = 0.012 + r() * 0.01; liftAmp = 0.012; width = lerp(0.013, 0.018, r()) * sc; flat = 0.7; curl = (r() < 0.5 ? -1 : 1) * 9;
+    } else if (style === 'baby') {
+      flow = tangentize(V(r() - 0.5, 0.3, r() - 0.5), n);
+      L = lerp(0.015, 0.03, r()) * sc;
+      lift0 = 0.003; liftAmp = 0.004; width = lerp(0.006, 0.009, r()) * sc; flat = 0.6; curl = 4;
     } else {
+      // neat side part
       const partX = 0.3;
       const bigSide = n.x < partX;
       if (bigSide) {
         flow = tangentize(V(-1, -0.05, -0.45), n);
         flow.lerp(tangentize(V(-0.75, 0.45, -0.6), n), smooth(0.1, 0.6, n.z)).normalize();
-        const back = smooth(-0.1, -0.6, n.z);
-        flow.lerp(tangentize(V(-0.2 * Math.sign(n.x || 1), -1, -0.3), n), back).normalize();
-      } else {
-        flow = tangentize(V(0.5, -1, -0.2), n);
-      }
+        flow.lerp(tangentize(V(-0.2 * Math.sign(n.x || 1), -1, -0.3), n), smooth(-0.1, -0.6, n.z)).normalize();
+      } else flow = tangentize(V(0.5, -1, -0.2), n);
       flow.applyAxisAngle(n, (r() - 0.5) * 0.12);
       L = lerp(0.06, 0.08, r()) * sc * (bigSide ? 1 : 0.45);
       lift0 = 0.007 + 0.016 * front * (bigSide ? 1 : 0.3) + 0.002 * r();
-      liftAmp = 0.002;
-      gravity = 0.0;
-      width = lerp(0.014, 0.02, r()) * sc;
+      liftAmp = 0.002; width = lerp(0.014, 0.02, r()) * sc; flat = 0.16; taper = 0.45;
     }
     const K = lo ? 8 : 14;
     const pts = [S(n, 0.99)];
@@ -835,32 +885,64 @@ function buildHair(head, spec, sculpt, r, lo) {
       const t = k / K;
       cur = cur.clone().addScaledVector(tau, step).normalize();
       tau = tangentize(tau.clone(), cur);
+      if (curl) tau.applyAxisAngle(cur, curl * step);
       tau.add(tangentize(down.clone(), cur).multiplyScalar(gravity * step * 4)).normalize();
       tau = tangentize(tau, cur);
-      const lift = lift0 * (1 - 0.6 * t) + liftAmp * Math.sin(Math.PI * t * 0.9) * (straight ? 1 : 0.5);
+      const lift = lift0 * (1 - 0.6 * t) + liftAmp * Math.sin(Math.PI * t * 0.9) + out * t;
       pts.push(S(cur, 1.012).addScaledVector(cur, lift * 0.9));
+      if (fall && cur.y < -0.02) break; // long hair stops hugging the head here and hangs down
     }
-    const geo = tube(pts, (t) => width * Math.pow(1 - t, straight ? 0.55 : 0.45) * (t < 0.08 ? 0.75 + t * 3 : 1) + 0.0004,
-      { tubular: lo ? 8 : 18, radial: lo ? 6 : 10, flat: straight ? 0.22 : 0.16, up: (P) => P.clone().normalize() });
-    const shade = 0.78 + r() * 0.44;
-    const cnt = geo.attributes.position.count;
-    const cols = new Float32Array(cnt * 3);
-    for (let i = 0; i < cnt; i++) {
-      const t = geo.attributes.uv.getY(i);
-      const tipLight = straight ? 1 + 0.25 * t : 1;
-      cols[i * 3] = baseCol.r * shade * tipLight; cols[i * 3 + 1] = baseCol.g * shade * tipLight; cols[i * 3 + 2] = baseCol.b * shade * tipLight;
+    if (fall) {
+      const last = pts[pts.length - 1].clone();
+      const outward = V(last.x, 0, last.z).normalize();
+      for (let e = 1; e <= 4; e++) pts.push(last.clone().add(V(0, -fall * e / 4, 0)).addScaledVector(outward, 0.006 * e * sc));
     }
-    geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
-    geo.deleteAttribute('uv');
-    geos.push(geo);
+    addClump(pts, width, flat, taper, 0.78 + r() * 0.44, tipLight);
     made++;
   }
+
+  // pigtails: two bunches of hair with bright hair ties
+  if (style === 'pigtails') {
+    const tieMat = new THREE.MeshStandardMaterial({ color: spec.accent || 0xff5fa2, roughness: 0.4 });
+    for (const sd of [-1, 1]) {
+      const a = S(V(sd * 0.86, 0.28, -0.3).normalize(), 1.06);
+      for (let k = 0; k < (lo ? 7 : 16); k++) {
+        const jit = V((r() - 0.5) * 0.02, (r() - 0.5) * 0.02, (r() - 0.5) * 0.02).multiplyScalar(sc);
+        const pts = [a.clone(), a.clone().add(V(sd * 0.05, 0.0, -0.01).multiplyScalar(sc)).add(jit),
+          a.clone().add(V(sd * 0.085, -0.06, -0.02).multiplyScalar(sc)).add(jit), a.clone().add(V(sd * 0.09, -0.13 * (spec.pigtailLen || 1), 0).multiplyScalar(sc)).add(jit)];
+        addClump(pts, 0.02 * sc, 0.5, 0.6, 0.8 + r() * 0.3);
+      }
+      const tie = mesh(new THREE.SphereGeometry(0.018 * sc, 12, 10), tieMat, head);
+      tie.position.copy(a).add(V(sd * 0.02 * sc, 0, 0));
+    }
+  }
   mesh(mergeGeometries(geos), hairMat, head);
+
+  // accessories
+  if (spec.bow) {
+    const m = new THREE.MeshStandardMaterial({ color: spec.bow, roughness: 0.4 });
+    const top = S(V(0.35, 0.9, 0.1).normalize(), 1.05);
+    const bow = new THREE.Group();
+    bow.position.copy(top);
+    bow.lookAt(top.clone().multiplyScalar(2));
+    for (const sd of [-1, 1]) {
+      const wing = mesh(new THREE.ConeGeometry(0.03 * sc, 0.05 * sc, 10), m, bow);
+      wing.rotation.z = sd * Math.PI / 2;
+      wing.position.x = sd * 0.026 * sc;
+    }
+    mesh(new THREE.SphereGeometry(0.014 * sc, 10, 8), m, bow);
+    head.add(bow);
+  }
+  if (spec.headband) {
+    const pts = [];
+    for (let i = 0; i <= 20; i++) { const a = -Math.PI / 2 - 1.3 + 2.6 * i / 20; pts.push(S(V(Math.cos(a), 0.55, -Math.sin(a) * 0.3 + 0.15).normalize(), 1.06)); }
+    mesh(tube(pts, () => 0.008 * sc, { tubular: 30, radial: 8, flat: 0.4, up: (P) => P.clone().normalize() }), new THREE.MeshStandardMaterial({ color: spec.headband, roughness: 0.4 }), head);
+  }
 }
 
 function buildGoggles(head, spec, sculpt, lo) {
   const R = spec.R;
-  const lift = spec.hair === 'straight' ? 1.2 : 1.11;
+  const lift = { straight: 1.2, long: 1.16, curly: 1.2, spiky: 1.24, baby: 1.06 }[spec.hair] || 1.11;
   const tilt = -0.62;
   const pts = [];
   for (let i = 0; i < 64; i++) {
@@ -905,15 +987,52 @@ export function setSlippers(boy, colors) {
 }
 
 export const YUSUF = {
-  name: 'Yusuf', seed: 7, R: 0.152, height: 1.04, girth: 0.96, skin: 0xc8956f, blush: 0xe08870, hair: 'straight',
+  id: 'yusuf', name: 'Yusuf', age: 10, seed: 7, R: 0.152, height: 1.04, girth: 0.96, skin: 0xc8956f, blush: 0xe08870, hair: 'straight',
   face: { width: 1.0, cheeks: 0.06, jawTaper: 0.27, chin: 0.05 },
   expr: { mouthW: 0.058, mouthH: 0.024, smile: 0.32, asym: 0.0, lid: 0.29, lidTilt: 0.04, browL: 0.05, browR: 0.06 },
-  headTilt: [0.04, 0.12, 0.07], pose: 'wave', slippers: [0x2f62c4, 0xf2b53a],
+  headTilt: [0.04, 0.12, 0.07], pose: 'wave', slippers: [0x2f62c4, 0xf2b53a], card: ['#ffb347', '#e8741a'],
 };
 export const MUSA = {
-  name: 'Musa', seed: 21, R: 0.156, height: 0.97, girth: 1.12, skin: 0xc28d68, blush: 0xdc8068, hair: 'neat',
+  id: 'musa', name: 'Musa', age: 10, seed: 21, R: 0.156, height: 0.97, girth: 1.12, skin: 0xc28d68, blush: 0xdc8068, hair: 'neat',
   face: { width: 1.0, cheeks: 0.08, jawTaper: 0.22, chin: 0.04 },
   expr: { mouthW: 0.052, mouthH: 0.018, smile: 0.42, asym: 0.0035, lid: 0.31, lidTilt: 0.0, browL: 0.06, browR: 0.0 },
-  headTilt: [0.02, -0.14, -0.05], pose: 'hip', slippers: [0x3a9a4a, 0x7a4bc2],
+  headTilt: [0.02, -0.14, -0.05], pose: 'hip', slippers: [0x3a9a4a, 0x7a4bc2], card: ['#5ec8ff', '#2a7fd4'],
 };
-export const BOYS = { yusuf: YUSUF, musa: MUSA };
+export const ANAYA = {
+  id: 'anaya', name: 'Anaya Apa', short: 'Anaya', age: 13, seed: 33, R: 0.142, height: 1.1, girth: 0.92, scale: 1.08, skin: 0xc9966f, blush: 0xe08a74, hair: 'long', headband: 0x8a5cff,
+  face: { width: 0.97, cheeks: 0.05, jawTaper: 0.3, chin: 0.05 },
+  expr: { mouthW: 0.05, mouthH: 0.012, smile: 0.5, asym: 0.005, lid: 0.33, lidTilt: 0.05, browL: 0.1, browR: -0.01 },
+  headTilt: [0.02, -0.08, 0.05], arms: { R: 'hip', L: 'hip' }, slippers: [0x8a5cff, 0xff6ad5], card: ['#c99bff', '#7a4bc2'],
+};
+export const AYRA = {
+  id: 'ayra', name: 'Ayra', age: 5, seed: 45, R: 0.17, height: 0.9, girth: 1.0, scale: 0.8, skin: 0xcf9d78, blush: 0xe8887a, hair: 'pigtails', accent: 0xff5fa2,
+  face: { width: 1.02, cheeks: 0.1, jawTaper: 0.16, chin: 0.03 },
+  expr: { mouthW: 0.056, mouthH: 0.026, smile: 0.35, asym: 0.0, lid: 0.27, lidTilt: 0.03, browL: 0.07, browR: 0.07 },
+  headTilt: [0.03, 0.15, 0.12], pose: 'wave', slippers: [0xff6ad5, 0xffd23f], card: ['#ff9fd0', '#e8508e'],
+};
+export const HARUN = {
+  id: 'harun', name: 'Harun', age: 5, seed: 57, R: 0.168, height: 0.9, girth: 1.04, scale: 0.8, skin: 0xc28d68, blush: 0xdc8068, hair: 'curly',
+  face: { width: 1.03, cheeks: 0.1, jawTaper: 0.15, chin: 0.03 },
+  expr: { mouthW: 0.06, mouthH: 0.028, smile: 0.3, asym: 0.0, lid: 0.28, lidTilt: 0.02, browL: 0.06, browR: 0.06 },
+  headTilt: [0.02, -0.1, -0.06], pose: 'relaxed', slippers: [0xff4f4f, 0x3fb8ff], card: ['#ff7a6a', '#d8323a'],
+};
+export const FARIS = {
+  id: 'faris', name: 'Faris', age: 5, seed: 69, R: 0.168, height: 0.92, girth: 0.98, scale: 0.82, skin: 0xc8956f, blush: 0xe08870, hair: 'spiky',
+  face: { width: 1.0, cheeks: 0.09, jawTaper: 0.18, chin: 0.03 },
+  expr: { mouthW: 0.062, mouthH: 0.03, smile: 0.28, asym: -0.004, lid: 0.27, lidTilt: 0.04, browL: 0.09, browR: 0.08 },
+  headTilt: [0.04, 0.1, -0.08], pose: 'wave', slippers: [0x5fd35a, 0xff9a3f], card: ['#8fe36a', '#3f9f2a'],
+};
+export const ZAINAB = {
+  id: 'zainab', name: 'Zainab', age: 2, seed: 81, R: 0.19, height: 0.76, girth: 1.14, scale: 0.72, skin: 0xd2a07c, blush: 0xec8a7c, hair: 'pigtails', pigtailLen: 0.6, accent: 0xffd23f, bow: 0xff5fa2,
+  face: { width: 1.06, cheeks: 0.13, jawTaper: 0.1, chin: 0.02 },
+  expr: { mouthW: 0.042, mouthH: 0.026, smile: 0.25, asym: 0.0, lid: 0.26, lidTilt: 0.02, browL: 0.06, browR: 0.06 },
+  headTilt: [0.06, 0.1, 0.14], pose: 'relaxed', slippers: [0xffd23f, 0xff5fa2], card: ['#ffe08a', '#f2a930'],
+};
+export const BABYMUSA = {
+  id: 'babymusa', name: 'Baby Musa', short: 'Baby Musa', age: 1, seed: 93, R: 0.2, height: 0.68, girth: 1.25, scale: 0.64, skin: 0xd6a582, blush: 0xf0907e, hair: 'baby', hairColor: 0x2a1d15,
+  face: { width: 1.08, cheeks: 0.15, jawTaper: 0.08, chin: 0.015 },
+  expr: { mouthW: 0.036, mouthH: 0.024, smile: 0.2, asym: 0.0, lid: 0.25, lidTilt: 0.0, browL: 0.05, browR: 0.05 },
+  headTilt: [0.08, -0.12, -0.1], pose: 'relaxed', slippers: [0x8fd3ff, 0x8fd3ff], card: ['#a6e3ff', '#3fa0d8'],
+};
+export const KIDS = [YUSUF, MUSA, ANAYA, AYRA, HARUN, FARIS, ZAINAB, BABYMUSA];
+export const BOYS = Object.fromEntries(KIDS.map(k => [k.id, k]));

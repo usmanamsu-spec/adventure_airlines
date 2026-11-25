@@ -3,8 +3,10 @@ import { MISSIONS } from './levels.js';
 import { PAINTS, UPGRADES } from './plane.js';
 import { store, totalStars, availableStars, socksFound, isUnlocked, buyUpgrade, buyPaint } from './save.js';
 
-const NAMES = { yusuf: 'Yusuf', musa: 'Musa' };
-const HOME = { yusuf: 'Plano, TX', musa: 'Greensboro, NC' };
+import { NAMES, AGES } from './dialogue.js';
+import { KIDS } from './characters.js';
+
+const AGE_LABEL = (id) => (AGES[id] === 1 ? '1 year old' : `${AGES[id]} years old`);
 const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
 export class UI {
@@ -29,12 +31,12 @@ export class UI {
       <div class="logo"><div class="logo-top">BACKYARD</div><div class="logo-bottom">SQUADRON</div><div class="logo-sub">✈️ A cardboard flying adventure</div></div>
       <div class="who-q">Who's flying today?</div>
       <div class="pick">
-        ${['yusuf', 'musa'].map(k => `
-        <button class="pilot-card" data-who="${k}">
-          <img src="${P[k]}" alt="${NAMES[k]}">
-          <div class="pc-name">${NAMES[k]}</div>
-          <div class="pc-home">${HOME[k]}</div>
-          <div class="pc-stars">⭐ ${totalStars(store.profile(k))}</div>
+        ${KIDS.map(k => `
+        <button class="pilot-card" data-who="${k.id}" style="--c1:${k.card[0]};--c2:${k.card[1]}">
+          <img src="${P[k.id]}" alt="${NAMES[k.id]}">
+          <div class="pc-name">${NAMES[k.id]}</div>
+          <div class="pc-home">${AGE_LABEL(k.id)}</div>
+          <div class="pc-stars">⭐ ${totalStars(store.profile(k.id))}</div>
         </button>`).join('')}
       </div>
       <button class="corner gear">⚙️</button>`;
@@ -71,7 +73,7 @@ export class UI {
       </div>
       <div class="chapters">
         <div class="chapter"><div class="ch-title">✈️ <b>Plano ➜ Greensboro</b></div>
-          <div class="ch-sub">${NAMES[who]} flies, ${NAMES[who === 'yusuf' ? 'musa' : 'yusuf']} rides in the back. Musa visited Plano, and now they're flying home to Greensboro together!</div>
+          <div class="ch-sub">Captain ${NAMES[who]} flies, and the whole squad rides along! Musa visited Plano, and now everybody is flying to Greensboro together. (Anaya Apa is in charge of the back row.)</div>
           ${MISSIONS.map((m, i) => card(m, i)).join('')}
         </div>
       </div>`;
@@ -229,18 +231,19 @@ export class UI {
 
   // ------------------------------------------------------------ ending
   ending() {
-    const app = this.app, who = app.player, buddy = who === 'yusuf' ? 'musa' : 'yusuf';
+    const app = this.app, who = app.player;
     const p = app.profile;
     this.clear();
     this.el.className = 'ending';
     this.el.innerHTML = `<div class="end-card">
       <div class="end-title">Best. Summer. Ever.</div>
-      <p>The sun went down over Greensboro and the fall leaves glowed orange. ${NAMES[who]} and ${NAMES[buddy]} sat in the cardboard plane in Musa's front yard, still in their red plaid pajamas, sharing the last juice box.</p>
-      <p>"Next summer," said ${NAMES[buddy]}, "you visit ${buddy === 'yusuf' ? 'Plano' : 'Greensboro'}... and we fly even farther."</p>
-      <p>"Deal," said ${NAMES[who]}. "Backyard Squadron forever!"</p>
+      <p>The sun went down over Greensboro and the fall leaves glowed orange. The whole squad sat in the cardboard plane in Musa's front yard, still in their red plaid pajamas, sharing the last juice boxes.</p>
+      <p>"Okay," said ${who === 'anaya' ? 'Yusuf' : 'Anaya Apa'}. "${who === 'anaya' ? 'Anaya Apa' : 'Captain ' + NAMES[who]}, that was... actually amazing. Everybody, say thank you."</p>
+      <p>"Thank you!" yelled Ayra, Harun and Faris. "Again!" said Zainab. "Ba!" said Baby Musa.</p>
+      <p>"Backyard Squadron forever!" said ${NAMES[who]}.</p>
       <div class="credits">
         <div><b>Starring</b></div>
-        <div>Yusuf <small>(Plano, TX)</small> &amp; Musa <small>(Greensboro, NC)</small></div>
+        <div>Yusuf · Musa · Anaya Apa · Ayra · Harun · Faris · Zainab · Baby Musa</div>
         <div class="cr-stats">⭐ ${totalStars(p)} / ${MISSIONS.length * 3} stars · 🧦 ${socksFound(p)} / ${MISSIONS.length} socks</div>
       </div>
       <button class="btn big done">🗺️ Back to map</button>

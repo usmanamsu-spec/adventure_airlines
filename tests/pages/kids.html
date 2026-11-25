@@ -1,0 +1,26 @@
+<!DOCTYPE html><html><body style="margin:0;background:#8cf">
+<script type="module">
+import * as THREE from 'three';
+import { makeBoy, lookAt, KIDS } from '/src/characters.js';
+const q = new URLSearchParams(location.search);
+const lod = q.get('lod') || 'hi';
+const times = {};
+const kids = KIDS.map(k => { const t0 = performance.now(); const b = makeBoy(k, { lod }); times[k.id] = Math.round(performance.now() - t0); return b; });
+window.__times = times;
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight); renderer.toneMapping = THREE.NeutralToneMapping;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x8fc8f0);
+const { RoomEnvironment } = await import('three/addons/environments/RoomEnvironment.js');
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.55;
+const key = new THREE.DirectionalLight(0xffe7cc, 2.6); key.position.set(-1.6, 3.2, 3); scene.add(key);
+const rim = new THREE.DirectionalLight(0xbfe0ff, 2.0); rim.position.set(2.2, 2.4, -2.5); scene.add(rim);
+scene.add(new THREE.HemisphereLight(0xcfe8ff, 0x6d8a4a, 0.6));
+const order = ['anaya', 'yusuf', 'musa', 'ayra', 'harun', 'faris', 'zainab', 'babymusa'];
+order.forEach((id, i) => { const b = kids[KIDS.findIndex(k => k.id === id)]; b.position.set(-2.45 + i * 0.7, 0, 0); b.rotation.y = 0; scene.add(b); });
+const cam = new THREE.PerspectiveCamera(24, innerWidth / innerHeight, 0.05, 50);
+if (q.get('shot') === 'faces') { cam.position.set(0, 0.9, 7); cam.lookAt(0, 0.9, 0); cam.fov = 14; cam.updateProjectionMatrix(); } else { cam.position.set(0, 0.9, 13.5); cam.lookAt(0, 0.8, 0); }
+kids.forEach(b => lookAt(b, cam.position));
+renderer.render(scene, cam);
+window.__ready = true;
+</script></body></html>

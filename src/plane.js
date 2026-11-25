@@ -87,7 +87,8 @@ function add(parent, geo, mat, x = 0, y = 0, z = 0) {
 
 /**
  * Build the plane. Local axes: +z forward, +y up, +x left wing.
- * Returns { group, update(dt, speed, boosting), seats: { front, back }, setNight(on) }.
+ * Returns { group, update(dt, speed, boosting), seats: { pilot, ... }, seatOrder, setNight(on) }.
+ * Big enough for the whole squad: a pilot up front, three rows of two, and one seat at the back.
  */
 export function buildPlane({ upgrades = {}, paint = 'cardboard' } = {}) {
   const group = new THREE.Group();
@@ -99,7 +100,7 @@ export function buildPlane({ upgrades = {}, paint = 'cardboard' } = {}) {
   const tape = std(0xaab0b6, { roughness: 0.5, metalness: 0.2 });
 
   // --- the fridge box (open top) ---
-  const L = 2.5, W = 1.0, H = 0.78, T = 0.03;
+  const L = 5.2, W = 1.5, H = 0.7, T = 0.03;
   add(body, new THREE.BoxGeometry(W, T, L), inside, 0, T / 2, 0);
   add(body, new THREE.BoxGeometry(T, H, L), boxMat, W / 2, H / 2, 0);
   add(body, new THREE.BoxGeometry(T, H, L), boxMat, -W / 2, H / 2, 0);
@@ -114,18 +115,23 @@ export function buildPlane({ upgrades = {}, paint = 'cardboard' } = {}) {
   const seatMat = std(0x2f7fd0, { roughness: 0.5 });
   const lid = std(0xffffff, { roughness: 0.4 });
   const seats = {};
-  for (const [name, z] of [['front', 0.42], ['back', -0.62]]) {
-    add(body, new THREE.BoxGeometry(0.6, 0.36, 0.42), seatMat, 0, 0.18, z - 0.12);
-    add(body, new THREE.BoxGeometry(0.62, 0.05, 0.44), lid, 0, 0.385, z - 0.12);
+  const seatOrder = [];
+  const layout = [['pilot', 0, 1.95], ['r1a', -0.38, 0.95], ['r1b', 0.38, 0.95], ['r2a', -0.38, -0.05], ['r2b', 0.38, -0.05], ['r3a', -0.38, -1.05], ['r3b', 0.38, -1.05], ['back', 0, -1.95]];
+  const seatCols = [0x2f7fd0, 0xff5fa2, 0xffd23f, 0x5fd35a, 0xff9a3f, 0x8a5cff, 0x3fc5ff, 0xd8323a];
+  layout.forEach(([name, x, z], i) => {
+    add(body, new THREE.BoxGeometry(0.56, 0.32, 0.42), std(seatCols[i], { roughness: 0.5 }), x, 0.16, z - 0.12);
+    add(body, new THREE.BoxGeometry(0.58, 0.05, 0.44), lid, x, 0.345, z - 0.12);
     const anchor = new THREE.Group();
-    anchor.position.set(0, 0.41, z - 0.1);
+    anchor.position.set(x, 0.37, z - 0.1);
     body.add(anchor);
     seats[name] = anchor;
-  }
+    seatOrder.push(name);
+  });
+  void seatMat;
   // toy steering wheel
-  const wheel = add(body, new THREE.TorusGeometry(0.13, 0.022, 8, 24), std(0xf2c230, { roughness: 0.4 }), 0, 0.78, 0.82);
+  const wheel = add(body, new THREE.TorusGeometry(0.13, 0.022, 8, 24), std(0xf2c230, { roughness: 0.4 }), 0, 0.72, 2.36);
   wheel.rotation.x = -0.9;
-  add(body, new THREE.CylinderGeometry(0.02, 0.02, 0.5, 8), std(0x333333), 0, 0.6, 0.98).rotation.x = -0.9;
+  add(body, new THREE.CylinderGeometry(0.02, 0.02, 0.5, 8), std(0x333333), 0, 0.54, 2.52).rotation.x = -0.9;
 
   // --- nose: cereal box + box fan ---
   const nose = new THREE.Group();
@@ -166,11 +172,11 @@ export function buildPlane({ upgrades = {}, paint = 'cardboard' } = {}) {
   const noodles = new THREE.Group();
   wingGroup.add(noodles);
   noodleColors.forEach((c, i) => {
-    const n = add(noodles, new THREE.CylinderGeometry(0.075, 0.075, 5.2, 12), std(c, { roughness: 0.6 }), 0, 0.82, 0.38 - i * 0.16);
+    const n = add(noodles, new THREE.CylinderGeometry(0.1, 0.1, 8.4, 12), std(c, { roughness: 0.6 }), 0, 0.76, 0.55 - i * 0.21);
     n.rotation.z = Math.PI / 2;
   });
   for (const s of [-1, 1]) {
-    const tp = add(noodles, new THREE.BoxGeometry(0.12, 0.17, 0.55), tape, s * 0.52, 0.82, 0.22);
+    const tp = add(noodles, new THREE.BoxGeometry(0.14, 0.22, 0.75), tape, s * 0.77, 0.76, 0.34);
     tp.rotation.z = 0;
   }
   // umbrella wings (upgrade)
@@ -178,27 +184,27 @@ export function buildPlane({ upgrades = {}, paint = 'cardboard' } = {}) {
   wingGroup.add(umbrella);
   const umbTex = stripeTexture(['#f04848', '#fff4e0', '#f04848', '#fff4e0', '#f04848', '#fff4e0', '#f04848', '#fff4e0']);
   umbTex.wrapS = THREE.RepeatWrapping;
-  const canopy = add(umbrella, new THREE.ConeGeometry(1.5, 0.45, 16, 1, true), new THREE.MeshStandardMaterial({ map: umbTex, roughness: 0.7, side: THREE.DoubleSide }), 0, 1.75, -0.1);
+  const canopy = add(umbrella, new THREE.ConeGeometry(2.1, 0.6, 16, 1, true), new THREE.MeshStandardMaterial({ map: umbTex, roughness: 0.7, side: THREE.DoubleSide }), 0, 1.75, -0.1);
   add(umbrella, new THREE.CylinderGeometry(0.025, 0.025, 1.3, 8), std(0xdddddd, { metalness: 0.6 }), 0, 1.1, -0.1);
   for (const s of [-1, 1]) {
-    const w = add(umbrella, new THREE.BoxGeometry(2.6, 0.06, 0.75), new THREE.MeshStandardMaterial({ map: umbTex, roughness: 0.7 }), s * 1.75, 0.84, 0.15);
+    const w = add(umbrella, new THREE.BoxGeometry(3.8, 0.06, 1.0), new THREE.MeshStandardMaterial({ map: umbTex, roughness: 0.7 }), s * 2.6, 0.78, 0.35);
     w.rotation.z = s * 0.06;
   }
   canopy.rotation.y = 0.2;
 
   // --- tail: pizza box + cereal box fin ---
-  const pizza = add(body, new THREE.BoxGeometry(1.7, 0.06, 0.55), std(0xf0e6d2), 0, 0.72, -L / 2 - 0.25);
+  const pizza = add(body, new THREE.BoxGeometry(2.6, 0.06, 0.8), std(0xf0e6d2), 0, 0.66, -L / 2 - 0.35);
   const pizzaLogo = add(body, new THREE.CircleGeometry(0.16, 20), std(0xd8443a), 0, 0.755, -L / 2 - 0.25);
   pizzaLogo.rotation.x = -Math.PI / 2;
   void pizza;
-  const fin = add(body, new THREE.BoxGeometry(0.06, 0.7, 0.5), std(0xffc93c), 0, 1.05, -L / 2 - 0.2);
+  const fin = add(body, new THREE.BoxGeometry(0.08, 1.0, 0.7), std(0xffc93c), 0, 1.1, -L / 2 - 0.3);
   fin.rotation.x = -0.15;
-  add(body, new THREE.BoxGeometry(0.065, 0.16, 0.3), std(0x3f8fd8), 0, 1.15, -L / 2 - 0.2).rotation.x = -0.15;
+  add(body, new THREE.BoxGeometry(0.085, 0.2, 0.4), std(0x3f8fd8), 0, 1.25, -L / 2 - 0.3).rotation.x = -0.15;
 
   // --- wagon wheels ---
   const wheelMat = std(0x222222, { roughness: 0.9 });
   const hub = std(0xd83a3a, { roughness: 0.4 });
-  for (const [x, z] of [[0.45, 0.85], [-0.45, 0.85], [0.45, -0.85], [-0.45, -0.85]]) {
+  for (const [x, z] of [[0.7, 1.9], [-0.7, 1.9], [0.7, 0], [-0.7, 0], [0.7, -1.9], [-0.7, -1.9]]) {
     const w = add(body, new THREE.CylinderGeometry(0.15, 0.15, 0.07, 16), wheelMat, x, -0.06, z);
     w.rotation.z = Math.PI / 2;
     const h = add(body, new THREE.CylinderGeometry(0.07, 0.07, 0.08, 12), hub, x, -0.06, z);
@@ -207,7 +213,7 @@ export function buildPlane({ upgrades = {}, paint = 'cardboard' } = {}) {
 
   // --- leaf blower (upgrade) ---
   const blower = new THREE.Group();
-  blower.position.set(0, 0.95, -0.95);
+  blower.position.set(0, 0.5, -L / 2 - 0.35);
   body.add(blower);
   add(blower, new THREE.BoxGeometry(0.34, 0.3, 0.42), std(0xf07a1a, { roughness: 0.5 }));
   const tubeM = add(blower, new THREE.CylinderGeometry(0.07, 0.09, 0.8, 12), std(0x2a2a2a), 0, 0.02, -0.55);
@@ -221,15 +227,15 @@ export function buildPlane({ upgrades = {}, paint = 'cardboard' } = {}) {
   body.add(floats);
   const pink = std(0xff7fb0, { roughness: 0.35 });
   for (const s of [-1, 1]) {
-    const f = add(floats, new THREE.CapsuleGeometry(0.2, 1.8, 6, 14), pink, s * 0.72, -0.12, 0.05);
+    const f = add(floats, new THREE.CapsuleGeometry(0.26, 4.2, 6, 14), pink, s * 0.95, -0.12, 0.05);
     f.rotation.x = Math.PI / 2;
-    const neck = add(floats, new THREE.TorusGeometry(0.2, 0.06, 8, 16, Math.PI * 1.2), pink, s * 0.72, 0.12, 1.0);
+    const neck = add(floats, new THREE.TorusGeometry(0.2, 0.06, 8, 16, Math.PI * 1.2), pink, s * 0.95, 0.12, 2.25);
     neck.rotation.y = Math.PI / 2;
     neck.rotation.z = -0.3;
-    add(floats, new THREE.SphereGeometry(0.1, 12, 10), pink, s * 0.72, 0.36, 1.12);
-    const beak = add(floats, new THREE.ConeGeometry(0.04, 0.14, 8), std(0x222222), s * 0.72, 0.33, 1.23);
+    add(floats, new THREE.SphereGeometry(0.1, 12, 10), pink, s * 0.95, 0.36, 2.37);
+    const beak = add(floats, new THREE.ConeGeometry(0.04, 0.14, 8), std(0x222222), s * 0.95, 0.33, 2.48);
     beak.rotation.x = Math.PI / 2 + 0.6;
-    add(floats, new THREE.SphereGeometry(0.02, 6, 6), std(0x111111), s * 0.8, 0.39, 1.16);
+    add(floats, new THREE.SphereGeometry(0.02, 6, 6), std(0x111111), s * 1.03, 0.39, 2.41);
   }
 
   // --- Christmas lights along the box rim ---
@@ -237,8 +243,8 @@ export function buildPlane({ upgrades = {}, paint = 'cardboard' } = {}) {
   const bulbColors = [0xff3b3b, 0x3bff6a, 0x3bb8ff, 0xffd23b, 0xff6af0];
   let k = 0;
   for (const s of [-1, 1]) {
-    for (let i = 0; i < 9; i++) {
-      const z = -L / 2 + 0.15 + i * (L - 0.3) / 8;
+    for (let i = 0; i < 15; i++) {
+      const z = -L / 2 + 0.15 + i * (L - 0.3) / 14;
       const c = bulbColors[k++ % bulbColors.length];
       const b = add(body, new THREE.SphereGeometry(0.035, 8, 6), new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.6 }), s * (W / 2 + 0.03), H + 0.01, z);
       b.castShadow = false;
@@ -254,7 +260,7 @@ export function buildPlane({ upgrades = {}, paint = 'cardboard' } = {}) {
 
   let t = 0;
   const api = {
-    group, body, seats, propeller: prop, spot,
+    group, body, seats, seatOrder, propeller: prop, spot,
     setUpgrades(u) {
       noodles.visible = !u.wings;
       umbrella.visible = !!u.wings;

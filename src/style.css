@@ -316,3 +316,13 @@ html, body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   .tb-name { font-size: 20px; } .tb-stat { font-size: 17px; }
   .topbar .btn { font-size: 15px; padding: 6px 10px; min-height: 42px; }
 }
+
+/* ---------- the whole squad on the title screen ---------- */
+.pick { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(8px, 2vw, 16px); width: min(760px, 96vw); margin: 10px 0 2vh; }
+.pilot-card { width: auto; padding: 6px 6px 8px; border-width: 4px; border-radius: 20px; background: linear-gradient(var(--c1), var(--c2)) !important; animation-delay: calc(var(--i, 0) * -0.3s); }
+.pilot-card img { border-radius: 14px; }
+.pc-name { font-size: clamp(15px, 3.4vw, 24px); line-height: 1.1; margin-top: 4px; }
+.pc-home { font-size: clamp(11px, 2.2vw, 14px); }
+.pc-stars { font-size: clamp(11px, 2.2vw, 14px); }
+.logo-top, .logo-bottom { font-size: clamp(38px, 11vw, 96px); }
+.who-q { margin-top: auto; }
