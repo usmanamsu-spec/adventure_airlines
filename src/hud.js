@@ -1,4 +1,4 @@
-// In-flight heads-up display (DOM overlay, sized for iPad landscape).
+// In-flight heads-up display (DOM overlay, laid out for iPad portrait).
 const NAMES = { yusuf: 'Yusuf', musa: 'Musa' };
 
 export class Hud {
@@ -41,8 +41,9 @@ export class Hud {
     this.bannerEl = this.q('.banner');
     this.land = this.q('.landmeter'); this.lmDot = this.q('.lm-dot'); this.lmText = this.q('.lm-text');
     this.joy = this.q('.joystick'); this.knob = this.q('.knob'); this.boostBtn = this.q('.boost');
-    this.q('.pause').addEventListener('click', () => app.pause());
-    this.q('.recenter').addEventListener('click', () => { app.input.recenter(); this.banner('Tilt recentered', 'ok', 900); });
+    // pointer events (not click): touches on the flight screen have their default blocked to stop zooming
+    this.q('.pause').addEventListener('pointerup', () => app.pause());
+    this.q('.recenter').addEventListener('pointerup', () => { app.input.recenter(); this.banner('Tilt recentered', 'ok', 900); });
     app.input.bindTouch(this.joy, this.knob, this.boostBtn);
     app.input.bindTrick(this.q('.trick'));
     this.cache = {};

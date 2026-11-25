@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
 const base = process.argv[2] || 'http://localhost:4173';
 const out = process.argv[3] || 'tests/out';
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const page = await browser.newPage({ viewport: { width: 1180, height: 820 } });
+const page = await browser.newPage({ viewport: { width: 820, height: 1180 } });
 const errors = [];
 page.on('pageerror', e => errors.push(e.message));
 await page.goto(base, { waitUntil: 'commit' });
@@ -38,11 +38,11 @@ console.log('saved m1', JSON.stringify(unlocked));
 await page.click('.results .next');
 await page.waitForFunction(() => window.__bsq.state === 'mission' && window.__bsq.mission.def.id === 'm2', null, { timeout: 120000 });
 console.log('next mission started: m2');
-// portrait guard
-await page.setViewportSize({ width: 820, height: 1180 });
+// sideways guard (the game is portrait-only)
+await page.setViewportSize({ width: 1180, height: 820 });
 await page.waitForTimeout(1600);
 const paused = await page.evaluate(() => window.__bsq.paused);
-await page.screenshot({ path: `${out}/flow-portrait.png` });
-console.log('paused in portrait', paused);
+await page.screenshot({ path: `${out}/flow-sideways.png` });
+console.log('paused when sideways', paused);
 console.log('errors', errors.length ? errors : 'none');
 await browser.close();

@@ -4,7 +4,7 @@ const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 const base = process.argv[2] || 'http://localhost:4173';
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const ctx = await browser.newContext({ viewport: { width: 1180, height: 820 }, hasTouch: true });
+const ctx = await browser.newContext({ viewport: { width: 820, height: 1180 }, hasTouch: true });
 const page = await ctx.newPage();
 const errors = [];
 page.on('pageerror', e => errors.push(e.message));
@@ -23,8 +23,16 @@ const touchTest = () => page.evaluate(() => {
     twoFingerMoveBlocked: fire('touchmove', joy, two),
     oneFingerDragOnGameBlocked: fire('touchmove', one[0].target, one),
     gestureBlocked: g.defaultPrevented,
-    oneFingerTapAllowed: !fire('touchstart', one[0].target, one),
+    oneFingerTouchOnGameBlocked: fire('touchstart', one[0].target, one),
+    boostDoubleTapBlocked: (fire('touchend', boost, []), fire('touchend', boost, [])),
   };
+});
+const menuTapAllowed = await page.evaluate(() => {
+  const b = document.querySelector('.pilot-card');
+  const t = new Touch({ identifier: 5, target: b, clientX: 100, clientY: 900 });
+  const ev = new TouchEvent('touchstart', { touches: [t], targetTouches: [t], changedTouches: [t], bubbles: true, cancelable: true });
+  b.dispatchEvent(ev);
+  return !ev.defaultPrevented;
 });
 await page.tap('.pilot-card[data-who="yusuf"]', { force: true });
 const menuScroll = await page.evaluate(() => {
@@ -49,5 +57,5 @@ const both = await page.evaluate(({ cx, cy }) => {
   const a = window.__bsq; for (let i = 0; i < 30; i++) { a.input.update(1 / 60); a.mission.step(1 / 60); }
   return { roll: a.input.roll, boost: a.input.boost };
 }, { cx: box.x + box.width / 2, cy: box.y + box.height / 2 });
-console.log(JSON.stringify({ menuScrollAllowed: menuScroll, ...inGame, stickAndBoostTogether: both, errors }));
+console.log(JSON.stringify({ menuTapAllowed, menuScrollAllowed: menuScroll, ...inGame, stickAndBoostTogether: both, errors }));
 await browser.close();

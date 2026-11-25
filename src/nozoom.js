@@ -10,8 +10,11 @@ export function preventZoom() {
     document.addEventListener(ev, (e) => { e.preventDefault(); resetZoom(); }, opts);
   }
 
-  // two or more fingers down: never zoom
-  document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, opts);
+  // On the flight screen (3D view, stick, BOOST, TRICK, pause) every touch is handled with pointer events,
+  // so block the browser's default for ALL of them: no pinch, no double-tap zoom from rapid BOOST taps.
+  const inGame = (t) => t instanceof Element && (t.closest('#hud') || t.tagName === 'CANVAS');
+  document.addEventListener('touchstart', (e) => { if (e.touches.length > 1 || inGame(e.target)) e.preventDefault(); }, opts);
+  document.addEventListener('dblclick', (e) => e.preventDefault(), opts);
 
   // dragging: never zoom or bounce the page; one finger may still scroll a menu list or move the settings slider
   document.addEventListener('touchmove', (e) => {
@@ -24,7 +27,7 @@ export function preventZoom() {
   document.addEventListener('touchend', (e) => {
     const now = performance.now();
     const onButton = e.target instanceof Element && e.target.closest('button, input');
-    if (!onButton && now - lastEnd < 350) e.preventDefault();
+    if (inGame(e.target) || e.touches.length > 0 || (!onButton && now - lastEnd < 350)) e.preventDefault();
     lastEnd = now;
   }, opts);
 

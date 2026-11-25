@@ -63,13 +63,13 @@ class App {
     const w = window.innerWidth, h = window.innerHeight;
     this.renderer.setSize(w, h);
     for (const cam of [this.titleCam, this.mission?.camera]) if (cam) { cam.aspect = w / h; cam.updateProjectionMatrix(); }
-    // Only react to portrait if it lasts: a quick accidental rotation shouldn't stop the game.
-    const portrait = h > w * 1.05;
-    clearTimeout(this.portraitT);
-    if (!portrait) { document.body.classList.remove('portrait'); return; }
-    this.portraitT = setTimeout(() => {
-      if (window.innerHeight <= window.innerWidth * 1.05) return;
-      document.body.classList.add('portrait');
+    // Portrait only. Only react to a sideways screen if it lasts: a quick accidental rotation shouldn't stop the game.
+    const sideways = w > h * 1.05;
+    clearTimeout(this.sidewaysT);
+    if (!sideways) { document.body.classList.remove('sideways'); return; }
+    this.sidewaysT = setTimeout(() => {
+      if (window.innerWidth <= window.innerHeight * 1.05) return;
+      document.body.classList.add('sideways');
       if (this.state === 'mission' && !this.paused) this.pause();
     }, 900);
   }
@@ -194,12 +194,14 @@ class App {
     const t = this.titleT;
     const cam = this.titleCam;
     if (this.garageView) {
-      cam.position.set(-0.6 + Math.sin(t * 0.3) * 0.5, 2.6, 4.2);
-      cam.lookAt(-1.4, 0.7, -2.2);
+      // portrait: plane in the top half, garage panel below
+      cam.position.set(3.2 + Math.sin(t * 0.3) * 0.5, 5.2, 6.4);
+      cam.lookAt(0.2, -1.9, -2.6);
     } else {
-      const wide = this.aspect > 1.2;
-      cam.position.set(Math.sin(t * 0.15) * 0.5 + 0.05, 1.05, wide ? 4.4 : 5.6);
-      cam.lookAt(0.05, 0.92, 0);
+      // portrait framing: logo above, the boys in the middle, pilot cards below
+      const tall = this.aspect < 0.8;
+      cam.position.set(Math.sin(t * 0.15) * 0.3 + 0.05, 1.0, tall ? 7.4 : 5.6);
+      cam.lookAt(0.05, tall ? 1.02 : 0.95, 0);
     }
     // happy idle animation: bounce, sway, and a real wave
     [[this.titleBoys.yusuf, 0], [this.titleBoys.musa, 1.4]].forEach(([b, ph]) => {
@@ -275,7 +277,7 @@ class App {
     this.acc = 0;
     this.sound.startMusic(def.time === 'night' ? 'night' : 'day');
     run.start();
-    if (document.body.classList.contains('portrait')) this.pause();
+    if (document.body.classList.contains('sideways')) this.pause();
   }
   restartMission() { this.startMission(this.missionIndex); }
   quitMission(silent) {
@@ -290,7 +292,7 @@ class App {
     this.ui.pause();
   }
   resume() {
-    if (document.body.classList.contains('portrait')) return;
+    if (document.body.classList.contains('sideways')) return;
     this.paused = false;
     this.ui.clear();
     this.last = performance.now();

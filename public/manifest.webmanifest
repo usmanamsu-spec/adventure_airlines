@@ -4,7 +4,7 @@
   "description": "Yusuf and Musa's cardboard flying adventure.",
   "start_url": "/",
   "display": "fullscreen",
-  "orientation": "landscape",
+  "orientation": "portrait",
   "background_color": "#0d1b2a",
   "theme_color": "#c8102e",
   "icons": [

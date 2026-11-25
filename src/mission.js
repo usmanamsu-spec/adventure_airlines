@@ -986,8 +986,9 @@ export class MissionRun {
     const flat = V(f.x, 0, f.z).normalize();
     const right = V(-flat.z, 0, flat.x);
     const landed = this.phase === 'landed';
-    const dist = landed ? 9 : 7.2 + (F.boosting ? 1.6 : 0);
-    const want = F.pos.clone().addScaledVector(flat, -dist).add(V(0, landed ? 3.6 : 2.5 - F.p * 3, 0)).addScaledVector(right, F.r * 1.2);
+    const tall = this.camera.aspect < 1;
+    const dist = (landed ? 9 : 7.2 + (F.boosting ? 1.6 : 0)) + (tall ? 1.2 : 0);
+    const want = F.pos.clone().addScaledVector(flat, -dist).add(V(0, (landed ? 3.6 : 2.5 - F.p * 3) + (tall ? 0.7 : 0), 0)).addScaledVector(right, F.r * 1.2);
     const g = this.groundAt(want) + 1.5;
     if (want.y < g) want.y = g;
     let look = F.pos.clone().addScaledVector(f, 10).add(V(0, 1.4, 0));
@@ -1010,7 +1011,8 @@ export class MissionRun {
     this.camera.lookAt(this.camLook);
     this.camera.rotateZ(-F.r * 0.25);
     this.fovKick = Math.max(0, this.fovKick - dt * 18);
-    const fov = 62 + (F.boosting ? 10 : 0) + this.fovKick;
+    const baseFov = this.camera.aspect < 1 ? 74 : 62; // taller screen: wider view so you can see where you're going
+    const fov = baseFov + (F.boosting ? 10 : 0) + this.fovKick;
     if (Math.abs(this.camera.fov - fov) > 0.1) { this.camera.fov = lerp(this.camera.fov, fov, 1 - Math.exp(-3 * dt)); this.camera.updateProjectionMatrix(); }
     this.world.follow(F.pos);
   }

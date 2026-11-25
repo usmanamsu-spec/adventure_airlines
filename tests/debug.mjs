@@ -3,7 +3,7 @@ const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 const [base, idx, secs, mode] = [process.argv[2], Number(process.argv[3]), Number(process.argv[4] || 120), process.argv[5] || 'auto'];
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const page = await browser.newPage({ viewport: { width: 800, height: 600 } });
+const page = await browser.newPage({ viewport: { width: 600, height: 800 } });
 await page.goto(base, { waitUntil: 'commit' });
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 300000 });
 const log = await page.evaluate(async ([i, secs, mode]) => {

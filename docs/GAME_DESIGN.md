@@ -1,6 +1,6 @@
 # Backyard Squadron — Game Design (v1)
 
-> **Status:** v1 is built and playable. See the [README](../README.md) to run or deploy it.
+> **Status:** v1 is built and playable. **Update:** the game now plays in **portrait only** (the landscape notes below are historical). See the [README](../README.md) to run or deploy it.
 
 A short, simple 3D flying game for 10-year-olds, played on **iPads in
 landscape** in the browser. Two best friends in red plaid pajamas fly a

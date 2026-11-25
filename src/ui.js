@@ -154,7 +154,7 @@ export class UI {
       <div class="row"><span>Music</span><button class="tog mus ${s.music ? 'on' : ''}">${s.music ? 'On' : 'Off'}</button></div>
       <div class="s-help">Touch stick: drag the left stick to steer, hold BOOST to go fast.<br>
         Tilt: hold the iPad like a steering wheel, tip it away to dive, toward you to climb, 🎯 recenters.
-        <b>If the screen keeps flipping when you tilt, lock rotation first:</b> hold the iPad sideways, swipe down from the top-right corner and tap the 🔒 lock.<br>
+        <b>If the screen keeps flipping when you tilt, lock rotation first:</b> hold the iPad upright, swipe down from the top-right corner and tap the 🔒 lock.<br>
         Keyboard: arrows / WASD to steer, Space to boost.</div>
       <div class="b-buttons"><button class="btn reset">Reset progress</button><button class="btn big close">Done</button></div>
     </div>`;

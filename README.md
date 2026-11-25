@@ -1,6 +1,6 @@
 # ✈️ Backyard Squadron
 
-A short 3D flying game for iPad starring **Yusuf** (Plano, TX) and **Musa** (Greensboro, NC), two best friends in matching red plaid pajamas who fly a cardboard-box plane. It runs in the browser, in landscape, and is built with [Three.js](https://threejs.org) and [Vite](https://vitejs.dev).
+A short 3D flying game for iPad starring **Yusuf** (Plano, TX) and **Musa** (Greensboro, NC), two best friends in matching red plaid pajamas who fly a cardboard-box plane. It runs in the browser, in **portrait (upright)**, and is built with [Three.js](https://threejs.org) and [Vite](https://vitejs.dev).
 
 ![Title screen](docs/screenshots/title.png)
 
@@ -8,11 +8,11 @@ A short 3D flying game for iPad starring **Yusuf** (Plano, TX) and **Musa** (Gre
 
 ## How to play
 
-1. Open the game on the iPad and turn it **sideways**. It only plays in landscape.
+1. Open the game on the iPad and hold it **upright**. It only plays in portrait.
 2. Tap **Share → Add to Home Screen**. It then opens full-screen like a real app.
 3. Pick who's flying today: **Yusuf** or **Musa**. Each boy has his own save, stars and plane.
 4. Tap **Start Engines!** Drag the stick on the left to steer and hold **BOOST** on the right.
-5. Want to steer by tilting? Go to ⚙️ Settings → **Tilt (gyro)**. First lock the screen rotation (hold the iPad sideways, swipe down from the top-right corner, tap 🔒), or the screen will flip when you tilt.
+5. Want to steer by tilting? Go to ⚙️ Settings → **Tilt (gyro)**. First lock the screen rotation (hold the iPad upright, swipe down from the top-right corner, tap 🔒), or the screen will flip when you tilt.
 
 No sound? Turn the volume up. The game unlocks sound on the first tap and also plays when an iPhone's silent switch is on (iOS 17+).
 

@@ -4,7 +4,7 @@ const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 const base = process.argv[2] || 'http://localhost:4173';
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-for (const [name, w, h] of [['ipad', 1180, 820], ['phone', 844, 390]]) {
+for (const [name, w, h] of [['ipad', 820, 1180], ['phone', 390, 844]]) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: true, isMobile: name === 'phone' });
   const page = await ctx.newPage();
   const errors = [];

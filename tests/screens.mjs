@@ -7,7 +7,7 @@ const base = process.argv[2] || 'http://localhost:4173';
 const out = process.argv[3] || 'tests/out';
 const which = process.argv[4] || 'all';
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const page = await browser.newPage({ viewport: { width: 1180, height: 820 }, deviceScaleFactor: 1, hasTouch: true });
+const page = await browser.newPage({ viewport: { width: 820, height: 1180 }, deviceScaleFactor: 1, hasTouch: true });
 page.on('pageerror', e => console.log('pageerror', e.message));
 await page.goto(base, { waitUntil: 'commit' });
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 300000 });

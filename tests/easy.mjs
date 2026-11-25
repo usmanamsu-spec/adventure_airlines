@@ -4,7 +4,7 @@ const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 const base = process.argv[2] || 'http://localhost:4173';
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const page = await browser.newPage({ viewport: { width: 900, height: 640 } });
+const page = await browser.newPage({ viewport: { width: 640, height: 900 } });
 const errors = [];
 page.on('pageerror', e => errors.push(e.message));
 await page.goto(base, { waitUntil: 'commit' });
