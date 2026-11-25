@@ -1,6 +1,10 @@
 # ✈️ Backyard Squadron
 
-A short 3D flying game for iPad starring the **Backyard Squadron**: Yusuf (10, Plano TX), Musa (10, Greensboro NC), Anaya Apa (13, the bossy big sister), Ayra (5), Harun (5), Faris (5), Zainab (2) and Baby Musa (1). They all wear matching red plaid pajamas and fly together in a giant cardboard-box plane. It runs in the browser, in **portrait (upright)**, and is built with [Three.js](https://threejs.org) and [Vite](https://vitejs.dev).
+A short 3D flying game for iPad starring the **Backyard Squadron**, all in matching red plaid pajamas, flying together in a giant cardboard-box plane:
+
+- **The Plano house:** Anaya Apa (13, the bossy big sister), Yusuf (10), Faris (5), Zainab (2)
+- **The Greensboro house:** Musa (10), Ayra (5), Harun (5), and Ruman (13, not playable: he talks on the walkie-talkie and waits in the front yard)
+- **Also flying:** Baby Musa (1) It runs in the browser, in **portrait (upright)**, and is built with [Three.js](https://threejs.org) and [Vite](https://vitejs.dev).
 
 ![Title screen](docs/screenshots/title.png)
 
@@ -33,7 +37,7 @@ The game helps kids out: big rainbow rings, gentle aim-assist toward the next ta
  Stars buy plane upgrades in the **Garage**: umbrella wings for tighter turns, a leaf-blower engine for a bigger boost tank, and flamingo floats for landing on water. The **Landing helper** setting makes landings easier.
 
 ### Missions
-The whole squad flies in every mission: whoever you pick is the pilot, and the other seven ride along and chat. Anaya Apa bosses everyone from the back row, the 5-year-olds ask "are we there yet?", and Zainab and Baby Musa say cute little words.
+The whole squad flies in every mission: whoever you pick is the pilot, and the other seven ride along and chat. The kids talk the whole way: hundreds of lines and family-aware banter. Anaya Apa bosses her Plano siblings from the back row, the Greensboro kids can't wait to show off their town, the 5-year-olds tell jokes and ask "are we there yet?", Zainab and Baby Musa say cute little words, and Ruman checks in on the walkie-talkie from the Greensboro house.
 
 | # | Mission | What happens |
 |---|---|---|

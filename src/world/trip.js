@@ -283,7 +283,7 @@ export function buildTrip(w) {
   return {
     spawn: { p: [0, 26, -150], h: 0 },
     objectives: [{ type: 'rings', label: 'Landmarks', rings, r: 12, style: 'waypoint', photo }],
-    landing: { p: [GSO.landX, GSO.landZ], h: 0, len: 90, wid: 14, text: 'Land on Musa\'s street!' },
+    landing: { p: [GSO.landX, GSO.landZ], h: 0, len: 90, wid: 14, text: 'Land by the Greensboro house!' },
     juice,
     sock: [PX, PY + 52, PZ],
     bounds: { corridor: true, x: 360, z0: -260, z1: 5150, path: tripPath },

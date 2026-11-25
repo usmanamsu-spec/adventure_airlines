@@ -73,7 +73,7 @@ export class UI {
       </div>
       <div class="chapters">
         <div class="chapter"><div class="ch-title">✈️ <b>Plano ➜ Greensboro</b></div>
-          <div class="ch-sub">Captain ${NAMES[who]} flies, and the whole squad rides along! Musa visited Plano, and now everybody is flying to Greensboro together. (Anaya Apa is in charge of the back row.)</div>
+          <div class="ch-sub">Captain ${NAMES[who]} flies, and the whole squad rides along! The Greensboro kids (Musa, Ayra and Harun) came to visit the Plano house (Anaya Apa, Yusuf, Faris and Zainab). Now everybody flies back to Greensboro together, where Ruman is waiting. Anaya Apa is in charge of the back row.</div>
           ${MISSIONS.map((m, i) => card(m, i)).join('')}
         </div>
       </div>`;
@@ -237,13 +237,16 @@ export class UI {
     this.el.className = 'ending';
     this.el.innerHTML = `<div class="end-card">
       <div class="end-title">Best. Summer. Ever.</div>
-      <p>The sun went down over Greensboro and the fall leaves glowed orange. The whole squad sat in the cardboard plane in Musa's front yard, still in their red plaid pajamas, sharing the last juice boxes.</p>
+      <p>The sun went down over Greensboro and the fall leaves glowed orange. The whole squad climbed out of the cardboard plane in front of the Greensboro house, where Ruman was waiting with a big wave.</p>
+      <p>"You actually made it," said Ruman. "In a BOX." "I supervised," said Anaya Apa.</p>
       <p>"Okay," said ${who === 'anaya' ? 'Yusuf' : 'Anaya Apa'}. "${who === 'anaya' ? 'Anaya Apa' : 'Captain ' + NAMES[who]}, that was... actually amazing. Everybody, say thank you."</p>
       <p>"Thank you!" yelled Ayra, Harun and Faris. "Again!" said Zainab. "Ba!" said Baby Musa.</p>
       <p>"Backyard Squadron forever!" said ${NAMES[who]}.</p>
       <div class="credits">
         <div><b>Starring</b></div>
-        <div>Yusuf · Musa · Anaya Apa · Ayra · Harun · Faris · Zainab · Baby Musa</div>
+        <div><b>The Plano house:</b> Anaya Apa · Yusuf · Faris · Zainab</div>
+        <div><b>The Greensboro house:</b> Musa · Ayra · Harun · Ruman</div>
+        <div>and Baby Musa</div>
         <div class="cr-stats">⭐ ${totalStars(p)} / ${MISSIONS.length * 3} stars · 🧦 ${socksFound(p)} / ${MISSIONS.length} socks</div>
       </div>
       <button class="btn big done">🗺️ Back to map</button>

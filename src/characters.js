@@ -1035,4 +1035,11 @@ export const BABYMUSA = {
   headTilt: [0.08, -0.12, -0.1], pose: 'relaxed', slippers: [0x8fd3ff, 0x8fd3ff], card: ['#a6e3ff', '#3fa0d8'],
 };
 export const KIDS = [YUSUF, MUSA, ANAYA, AYRA, HARUN, FARIS, ZAINAB, BABYMUSA];
+/** Ruman (13) lives in the Greensboro house. Not playable: he radios in and waits in the front yard. */
+export const RUMAN = {
+  id: 'ruman', name: 'Ruman', age: 13, seed: 105, R: 0.142, height: 1.12, girth: 0.98, scale: 1.1, skin: 0xc28d68, blush: 0xdc8068, hair: 'straight',
+  face: { width: 0.98, cheeks: 0.05, jawTaper: 0.3, chin: 0.055 },
+  expr: { mouthW: 0.054, mouthH: 0.018, smile: 0.4, asym: -0.004, lid: 0.31, lidTilt: 0.03, browL: 0.05, browR: 0.07 },
+  headTilt: [0.02, 0.1, 0.04], pose: 'wave', slippers: [0x2f62c4, 0x2f62c4], card: ['#9fb3c8', '#4f6a88'],
+};
 export const BOYS = Object.fromEntries(KIDS.map(k => [k.id, k]));

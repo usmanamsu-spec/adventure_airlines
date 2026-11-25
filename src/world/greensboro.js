@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { netSculpture, trainCar, rails, shuttle } from './props.js';
 import { label3d, musaHouse, scatterTrees } from './helpers.js';
 import { glowTexture } from './props.js';
+import { makeBoy, lookAt, RUMAN } from '../characters.js';
 
 const PI = Math.PI;
 export const GSO = { landX: 0, landZ: 4860 };
@@ -196,7 +197,20 @@ export function buildGreensboro(w, P) {
   }
   musaHouse(w, 26, GSO.landZ + 10, -PI / 2);
   w.lawn(26, GSO.landZ + 10, 30, 30, 0x86c460);
-  label3d(w, 'Musa\'s House', 26, 18, GSO.landZ + 10, 4);
+  label3d(w, 'The Greensboro House', 26, 20, GSO.landZ + 10, 4);
+  // Ruman is waiting in the front yard, waving
+  const ruman = makeBoy(RUMAN, { lod: 'lo' });
+  ruman.position.set(14, 0, GSO.landZ + 2);
+  ruman.rotation.y = -Math.PI / 2 - 0.5;
+  ruman.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  w.add(ruman);
+  const wave = ruman.userData.waveHand;
+  w.addDyn((dt, t) => {
+    ruman.position.y = Math.abs(Math.sin(t * 3)) * 0.12;
+    if (wave) wave.quaternion.copy(wave.userData.baseQ).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin(t * 8) * 0.5));
+  });
+  label3d(w, 'Ruman', 14, 3.4, GSO.landZ + 2, 1.6);
+  void lookAt;
   for (const zz of [4700, 4980]) w.road(-200, zz, 200, zz, 9, { lines: false });
   for (let i = 0; i < 4; i++) for (let j = 0; j < 8; j++) {
     const x = (i < 2 ? -1 : 1) * (70 + (i % 2) * 70), z = 4600 + j * 55;

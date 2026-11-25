@@ -289,8 +289,24 @@ export class MissionRun {
     if (!variants) return;
     const busy = this.t < (this.chatBusy || 0);
     if (busy && priority === 0) return;
+    // something important just happened: drop old chatter that hasn't been said yet, so the talk stays on time
+    if (priority >= 2 && busy && this.chatBusy - this.t > 3) {
+      // ...but let the conversation that's already going finish its last lines
+      this.events = this.events.filter(e => !e.chat || e.conv === this.activeConv);
+      this.chatBusy = Math.max(this.t, ...this.events.filter(e => e.chat).map(e => e.end));
+    }
+    const convId = (this.convCounter = (this.convCounter || 0) + 1);
     if (busy && priority === 1 && this.chatBusy - this.t > 4) return;
-    const conv = variants[Math.floor(Math.random() * variants.length)];
+    // pick a conversation that works with this pilot (lines naming the pilot can't be said) and wasn't used lately
+    this.usedConvs = this.usedConvs || {};
+    const used = this.usedConvs[key] = this.usedConvs[key] || [];
+    const ok = (conv) => conv.every(([spec]) => spec.includes('|') || ['little', 'five', 'big', 'plano', 'gso', 'any'].includes(spec) || spec !== this.player);
+    let options = variants.map((c, i) => i).filter(i => ok(variants[i]) && !used.includes(i));
+    if (!options.length) { used.length = 0; options = variants.map((c, i) => i).filter(i => ok(variants[i])); }
+    if (!options.length) return;
+    const pick = options[Math.floor(Math.random() * options.length)];
+    used.push(pick);
+    const conv = variants[pick];
     let at = Math.max(this.t + 0.1, this.chatBusy || 0);
     let prev = null;
     for (const [who0, text0] of conv) {
@@ -298,7 +314,7 @@ export class MissionRun {
       if (!who) continue;
       const text = fillText(text0, who, this.player);
       const dur = 1.3 + text.length * 0.042;
-      this.events.push({ at, fn: () => { this.app.hud.say(who, text, (dur + 0.4) * 1000); this.talking = who; this.talkUntil = this.t + dur; } });
+      this.events.push({ at, end: at + dur + 0.2, chat: true, conv: convId, fn: () => { this.activeConv = convId; this.app.hud.say(who, text, (dur + 0.4) * 1000); this.talking = who; this.talkUntil = this.t + dur; } });
       at += dur + 0.2;
       prev = who;
     }
@@ -385,7 +401,12 @@ export class MissionRun {
     this.time += dt;
     this.invuln = Math.max(0, this.invuln - dt);
     if (this.talking && this.t > this.talkUntil) this.talking = null;
-    if (this.phase === 'fly' && this.t - (this.lastChat || 0) > 16 && this.t > (this.chatBusy || 0)) this.chat('banter', { priority: 0 });
+    if (this.phase === 'fly' && this.t - (this.lastChat || 0) > 9 && this.t > (this.chatBusy || 0)) this.chat('banter', { priority: 0 });
+    // little reactions to boosting and juice
+    const boostingNow = this.flight.boosting && !this.freeBoost;
+    if (boostingNow && !this._wasBoosting && Math.random() < 0.35) this.chat('boost', { priority: 0 });
+    this._wasBoosting = boostingNow;
+    if (this.flight.juice < 0.12 && this.t - (this._juiceLowT || -99) > 30) { this._juiceLowT = this.t; this.chat('juiceLow', { priority: 0 }); }
     const F = this.flight;
     const easy = !this.autopilot && this.settings.easy !== false;
     let input = this.autopilot ? this.autoInput() : this.app.input;
@@ -628,6 +649,7 @@ export class MissionRun {
     const msgs = { butter: 'BUTTER LANDING!', bumpy: 'Bumpy landing!', pancake: 'Pancake landing!' };
     this.app.hud.banner(msgs[grade], grade === 'butter' ? 'good' : 'ok', 2400);
     this.app.sound.fanfare();
+    this.events = this.events.filter(e => !e.chat);
     this.chatBusy = this.t;
     this.chat(grade === 'butter' ? 'landedButter' : 'landedOk', { priority: 2 });
     this.addScore({ butter: 300, bumpy: 150, pancake: 60 }[grade], grade === 'butter' ? 'Butter bonus' : 'Landing');
@@ -909,6 +931,7 @@ export class MissionRun {
         F.juice = Math.min(1, F.juice + 0.35);
         this.app.sound.pickup();
         this.puffs.sparkle(j.position, 10, 2);
+        if (Math.random() < 0.35) this.chat('juice', { priority: 0 });
         this.app.hud.banner('+ Juice!', 'juice', 700);
       }
     }

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import './style.css';
-import { makeBoy, lookAt, setSlippers, BOYS, KIDS } from './characters.js';
+import { makeBoy, lookAt, setSlippers, BOYS, KIDS, RUMAN } from './characters.js';
 import { buildPlane } from './plane.js';
 import { hotAirBalloon } from './world/props.js';
 import { Input } from './flight.js';
@@ -91,6 +91,7 @@ class App {
       hi.traverse(o => { if (o.geometry) o.geometry.dispose(); });
       this.titleBoys[KIDS[i].id] = makeBoy(KIDS[i], { lod: 'lo' });
     }
+    { const hi = makeBoy(RUMAN, { lod: 'hi' }); this.snapPortrait(RUMAN, hi); hi.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
     this.portraitR.dispose();
     this.portraitR.forceContextLoss?.();
     this.buildTitleScene();
