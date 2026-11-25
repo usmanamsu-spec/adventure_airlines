@@ -144,10 +144,10 @@ export class Input {
     if (k.has('ArrowDown') || k.has('KeyS')) pitch -= 1;
     if (k.has('Space') || k.has('ShiftLeft')) boost = true;
     // gamepad
-    let trick = this.touchTrick || k.has('KeyE') || k.has('KeyQ');
-    this.touchTrick = false;
-    let honk = this.touchHonk || k.has('KeyH');
-    this.touchHonk = false;
+    // taps on TRICK / HONK stay 'pending' until the game uses them (on 120 Hz iPads the screen refreshes
+    // twice per game step, so a one-frame tap used to get lost)
+    let trick = k.has('KeyE') || k.has('KeyQ');
+    let honk = k.has('KeyH');
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];
     for (const gp of pads) {
       if (!gp) continue;
@@ -176,9 +176,15 @@ export class Input {
     this.roll = clamp(roll, -1, 1);
     this.pitch = clamp(pitch, -1, 1);
     this.boost = boost;
-    this.trick = trick;
-    this.honk = honk;
+    if (trick) this.touchTrick = true;
+    if (honk) this.touchHonk = true;
+    this.trick = this.touchTrick;
+    this.honk = this.touchHonk;
   }
+
+  /** returns true once per press */
+  takeHonk() { const h = this.touchHonk; this.touchHonk = false; this.honk = false; return h; }
+  takeTrick() { const t = this.touchTrick; this.touchTrick = false; this.trick = false; return t; }
 
   bindHonk(el) {
     el.addEventListener('pointerdown', (e) => { this.touchHonk = true; el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 220); e.preventDefault(); });

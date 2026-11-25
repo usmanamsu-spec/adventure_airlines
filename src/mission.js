@@ -347,6 +347,9 @@ export class MissionRun {
     for (let i = this.events.length - 1; i >= 0; i--) if (this.events[i].at <= this.t) { const e = this.events.splice(i, 1)[0]; e.fn(); }
     this.world.update(dt, this.t);
     this.animateScenery(dt);
+    this.honkCool = Math.max(0, (this.honkCool || 0) - dt);
+    if (this.app.input.honk && this.honkCool <= 0 && this.phase !== 'crashed') { this.app.input.takeHonk(); this.honk(); }
+    if (this.phase !== 'fly' && this.phase !== 'land' && this.app.input.trick) this.app.input.takeTrick(); // no surprise tricks later
     this.confetti.update(dt);
     this.puffs.update(dt);
     this.leaves.update(dt, this.t, this.flight.pos, this.world.isFall(this.flight.pos.z));
@@ -412,7 +415,7 @@ export class MissionRun {
     if (this.flight.juice < 0.12 && this.t - (this._juiceLowT || -99) > 30) { this._juiceLowT = this.t; this.chat('juiceLow', { priority: 0 }); }
     const F = this.flight;
     const easy = !this.autopilot && this.settings.easy === true;
-    let input = this.autopilot ? { ...this.autoInput(), honk: this.app.input.honk, trick: this.app.input.trick } : this.app.input;
+    let input = this.autopilot ? this.autoInput() : this.app.input;
     if (easy) input = this.easyInput(input, dt);
     const opt = { cruise: this.spec.cruise || 1, turn: this.profile.upgrades.wings ? 1.7 : 1.35, maxRoll: (this.profile.upgrades.wings ? 58 : 50) * DEG, tank: this.profile.upgrades.blower, free: this.freeBoost > 0 };
     this.freeBoost = Math.max(0, this.freeBoost - dt);
@@ -460,9 +463,7 @@ export class MissionRun {
     }
     this.avoidObstacles(dt, easy || this.autopilot);
     // barrel roll trick!
-    if (input.trick && this.trickCool <= 0 && F.pos.y - this.groundAt(F.pos) > 6) this.doTrick();
-    this.honkCool = Math.max(0, (this.honkCool || 0) - dt);
-    if (input.honk && this.honkCool <= 0) this.honk();
+    if (this.app.input.trick) { this.app.input.takeTrick(); if (this.trickCool <= 0 && F.pos.y - this.groundAt(F.pos) > 6) this.doTrick(); }
     if (this.trickT > 0) this.trickT = Math.max(0, this.trickT - dt);
 
     // world limits
