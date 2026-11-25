@@ -3,6 +3,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import './style.css';
 import { makeBoy, lookAt, setSlippers, BOYS, KIDS, RUMAN } from './characters.js';
 import { buildPlane } from './plane.js';
+import { buildTruck } from './truck.js';
 import { hotAirBalloon } from './world/props.js';
 import { Input } from './flight.js';
 import { Sound } from './audio.js';
@@ -256,6 +257,7 @@ class App {
     store.data.last = who;
     store.save();
     this.sound.unlock(); // first, while we're still inside the tap
+    this.refreshGaragePlane(); // Faris gets his truck
     this.sound.startMusic('day');
     if (this.settings.controls === 'tilt') await this.input.requestMotion();
     this.state = 'map';
@@ -267,8 +269,10 @@ class App {
   refreshGaragePlane() {
     const p = this.profile;
     this.titleScene.remove(this.titlePlane.group);
-    this.titlePlane = buildPlane({ upgrades: p.upgrades, paint: p.paint });
-    this.titlePlane.group.position.set(0.6, 0.21 + (p.upgrades.floats ? 0.32 : 0), -3.6);
+    const truck = this.player === 'faris';
+    this.titlePlane = truck ? buildTruck() : buildPlane({ upgrades: p.upgrades, paint: p.paint });
+    this.titlePlane.group.position.set(truck ? 0.9 : 0.6, truck ? 0 : 0.21 + (p.upgrades.floats ? 0.32 : 0), truck ? -5.2 : -3.6);
+    if (truck) this.titlePlane.group.scale.setScalar(0.62);
     this.titlePlane.group.rotation.y = -0.5;
     this.titlePlane.group.traverse(o => { if (o.isMesh) o.castShadow = true; });
     this.titleScene.add(this.titlePlane.group);

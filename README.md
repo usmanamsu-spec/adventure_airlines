@@ -48,6 +48,9 @@ The whole squad flies in every mission: whoever you pick is the pilot, and the o
 
 The leaves turn red, orange and gold from Tennessee onward, with falling leaves around the plane and mist in the mountains. The afternoon slowly turns into a golden sunset as you fly east.
 
+### Faris's flying truck
+Pick **Faris** and the cardboard plane turns into his shiny, pointy, stainless-steel flying pickup truck (a Cybertruck-style homage, with no logos). Faris drives in the glass cabin and the rest of the squad rides in the open bed, with extra truck chatter from the back.
+
 ### Graphics
 **Fancy** graphics (default; ⚙️ Settings → Graphics) add a glow on bright light (the sun, rings, city lights, fireworks), mirror-like water that reflects the sky and landmarks, and lighting that takes its colors from the sky. Real ray tracing isn't available in iPad browsers, so these effects approximate that look. If an older iPad stutters, switch to **Fast**.
 

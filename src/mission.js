@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { World, textSprite } from './world/kit.js';
 import { juiceBox, sock as sockMesh, iceCream, firefly, fishingHat, glowTexture } from './world/props.js';
 import { buildPlane } from './plane.js';
+import { buildTruck } from './truck.js';
 import { Flight, BASE_SPEED } from './flight.js';
 import { SCRIPTS, resolveSpeaker, fillText, isLittle } from './dialogue.js';
 import { clamp, damp, wrapAngle, DEG, lerp } from './util.js';
@@ -65,7 +66,8 @@ export class MissionRun {
     this.noDamage = !!S.noDamage;
 
     // plane + crew
-    const plane = buildPlane({ upgrades: this.profile.upgrades, paint: this.profile.paint });
+    // when Faris flies, the cardboard plane becomes his shiny flying truck
+    const plane = this.player === 'faris' ? buildTruck() : buildPlane({ upgrades: this.profile.upgrades, paint: this.profile.paint });
     plane.setNight(!!S.night);
     this.plane = plane;
     this.scene.add(plane.group);
@@ -276,7 +278,8 @@ export class MissionRun {
     this.countdown = 3.2;
     this.lastCount = 4;
     this.app.input.recenter();
-    this.chat(isLittle(this.player) && SCRIPTS[`${this.def.id}.introBaby`] ? `${this.def.id}.introBaby` : `${this.def.id}.intro`, { priority: 2 });
+    const introKey = this.player === 'faris' ? 'introTruck' : isLittle(this.player) ? 'introBaby' : 'intro';
+    this.chat(SCRIPTS[`${this.def.id}.${introKey}`] ? `${this.def.id}.${introKey}` : `${this.def.id}.intro`, { priority: 2 });
     this.updateHud(true);
   }
 
@@ -401,7 +404,7 @@ export class MissionRun {
     this.time += dt;
     this.invuln = Math.max(0, this.invuln - dt);
     if (this.talking && this.t > this.talkUntil) this.talking = null;
-    if (this.phase === 'fly' && this.t - (this.lastChat || 0) > 9 && this.t > (this.chatBusy || 0)) this.chat('banter', { priority: 0 });
+    if (this.phase === 'fly' && this.t - (this.lastChat || 0) > 9 && this.t > (this.chatBusy || 0)) this.chat(this.player === 'faris' && Math.random() < 0.4 ? 'truckBanter' : 'banter', { priority: 0 });
     // little reactions to boosting and juice
     const boostingNow = this.flight.boosting && !this.freeBoost;
     if (boostingNow && !this._wasBoosting && Math.random() < 0.35) this.chat('boost', { priority: 0 });
@@ -473,7 +476,7 @@ export class MissionRun {
     this.plane.update(dt, F.speed, F.boosting);
     this.app.sound.setEngine(F.speed, F.boosting);
     if (F.boosting && Math.floor(this.t * 60) % 2 === 0) {
-      const tail = this.plane.group.localToWorld(V(0, 0.8, -1.8));
+      const tail = this.plane.group.localToWorld(this.plane.tail.clone());
       this.puffs.emit(tail, { size: 0.9, life: 0.7, grow: 1.6, fade: 0.65 });
     }
     this.updateCandies(dt);
@@ -906,7 +909,7 @@ export class MissionRun {
     const frame = Math.floor(this.t * 60);
     this.app.hud.speedLines(F.boosting);
     if (frame % 3 === 0) {
-      for (const s of [-1, 1]) this.puffs.emit(g.localToWorld(V(s * 2.6, 0.85, 0.1)), { size: 0.45, life: 0.45, grow: 0.8, light: 0.97, sat: 0.1, fade: 0.55 });
+      for (const tip of this.plane.tips) this.puffs.emit(g.localToWorld(tip.clone()), this.plane.kind === 'truck' ? { color: 0.52, size: 0.7, life: 0.5, grow: 1, light: 0.75, fade: 0.6 } : { size: 0.45, life: 0.45, grow: 0.8, light: 0.97, sat: 0.1, fade: 0.55 });
     }
     const alt = F.pos.y - this.groundAt(F.pos);
     if (alt < 8 && this.world.isWater(F.pos.x, F.pos.z) && frame % 2 === 0) {

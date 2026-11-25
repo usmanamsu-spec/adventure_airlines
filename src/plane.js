@@ -260,7 +260,9 @@ export function buildPlane({ upgrades = {}, paint = 'cardboard' } = {}) {
 
   let t = 0;
   const api = {
-    group, body, seats, seatOrder, propeller: prop, spot,
+    group, body, seats, seatOrder, propeller: prop, spot, kind: 'plane',
+    tips: [new THREE.Vector3(4.1, 0.76, 0.3), new THREE.Vector3(-4.1, 0.76, 0.3)],
+    tail: new THREE.Vector3(0, 0.8, -2.9),
     setUpgrades(u) {
       noodles.visible = !u.wings;
       umbrella.visible = !!u.wings;

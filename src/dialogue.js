@@ -81,6 +81,17 @@ export const SCRIPTS = {
     [["yusuf|anaya", "Our street! Bring it down nice and slow, {pilot}."], ["ruman", "Ruman here. Did you land yet? I'm bored."]],
   ],
 
+  'intro.introTruck': [
+    [["anaya|yusuf", "FARIS. Where did the PLANE go?!"], ["yusuf|musa", "He turned it into a TRUCK! A flying truck!"], ["five", "It's SO SHINY!"],
+      ["little", Z("Twuck! Twuck!", "Vroom!")], ["anaya|yusuf", "Fine. Everybody in the back. Hold on to the sides."]],
+    [["ruman", "Ruman here. Uh... is that a flying TRUCK?"], ["musa|ayra|harun", "Faris is driving!"], ["ruman", "Of course he is."], ["anaya|yusuf", "Everybody stay sitting down in the truck bed!"]],
+    [["yusuf|musa", "Captain Faris, your truck is ready! Fly through the rings!"], ["ayra|harun", "Why is it all pointy?"], ["anaya|yusuf", "Because Faris drew it. With a ruler."], ["zainab|babymusa", Z("Pointy!", "Ba!")]],
+  ],
+  'trip.introTruck': [
+    [["musa|ayra|harun", "We're flying to Greensboro in a TRUCK!"], ["anaya|yusuf", "In the BACK of a truck. With the wind in our hair."], ["five", "BEST. DAY. EVER."], ["little", Z("Vroom vroom!", "Vroom!")]],
+    [["ruman", "Ruman here. Faris, you're driving all the way to Greensboro?"], ["anaya|yusuf", "He says he's a very good driver."], ["ruman", "He's five."], ["anaya|musa", "I KNOW."]],
+  ],
+
   // ======================================================== The Big Flight
   'trip.intro': [
     [["musa|ayra|harun", "Next stop: OUR house in Greensboro! Everybody ready?"], ["five", "Did anybody pack snacks?"], ["anaya|yusuf", "I packed snacks. Obviously. I pack everything."],
@@ -262,6 +273,18 @@ export const SCRIPTS = {
   boost: [
     [["five", "BOOOOST!"]], [["little", Z("Fast! Fast!", "Wheee!")]], [["anaya|musa", "Hold on to your slippers!"]],
     [["faris|harun", "My cheeks are flapping!"]], [["yusuf|musa", "Juice-box POWER!"]],
+  ],
+
+  // extra chatter when Faris is driving the flying truck
+  truckBanter: [
+    [["ayra|harun", "The truck is so shiny I can see my face in it!"], ["little", Z("Me! Me in truck!", "Ba!")]],
+    [["yusuf|musa", "Faris, does this thing have a radio?"], ["anaya|yusuf", "Do NOT let him find the radio."]],
+    [["harun|ayra", "Wind in my hair! Wind in my HAIR!"], ["anaya|musa", "Hold on to your slippers in the back!"]],
+    [["five", "Can we honk? Faris, HONK!"], ["anaya|yusuf", "Trucks don't honk in the sky."], ["little", Z("Beep beep!", "Bee!")]],
+    [["musa|yusuf", "It flies with little blue rockets underneath!"], ["harun|ayra", "Rocket truck! ROCKET TRUCK!"]],
+    [["anaya|yusuf", "Faris, eyes on the road. I mean the sky. I mean the rings."]],
+    [["zainab|babymusa", Z("Twuck go up!", "Up! Up!")], ["yusuf|musa", "Yep, the truck goes up!"]],
+    [["ayra|harun", "This is the coolest truck in the whole world."], ["anaya|musa", "It's the ONLY flying truck in the whole world."]],
   ],
 
   // random chatter while flying

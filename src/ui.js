@@ -119,6 +119,20 @@ export class UI {
       return `<button class="swatch ${p.paint === k ? 'sel' : ''}" data-k="${k}" style="--c:#${c.color.toString(16).padStart(6, '0')}" ${!owned && availableStars(p) < c.cost ? 'disabled' : ''}>
         <span class="sw"></span><span class="sw-name">${c.name}</span><span class="sw-cost">${owned ? (p.paint === k ? '✓' : '') : '⭐ ' + c.cost}</span></button>`;
     }).join('');
+    if (app.player === 'faris') {
+      this.el.innerHTML = `
+      <div class="garage-panel">
+        <div class="gp-head"><span>🔧 Faris's Garage</span><span class="gp-stars">⭐ ${availableStars(p)}</span></div>
+        <div class="gp-section">The Flying Truck 🛻⚡</div>
+        <div class="gp-sub" style="font-size:17px">When Faris drives, the cardboard plane turns into his shiny, pointy, stainless-steel flying truck! Faris sits up front, and everybody else rides in the back.</div>
+        <div class="gi owned"><div class="gi-name">Rocket thrusters</div><div class="gi-desc">Already installed</div><div class="gi-own">✅</div></div>
+        <div class="gi owned"><div class="gi-name">Super-shiny steel</div><div class="gi-desc">No paint needed, says Faris</div><div class="gi-own">✅</div></div>
+        <div class="gp-sub">${socksFound(p) >= MISSIONS.length ? '🧦 All lost socks found: GOLDEN SLIPPERS unlocked!' : `🧦 Find all ${MISSIONS.length} lost socks for golden slippers (${socksFound(p)}/${MISSIONS.length})`}</div>
+        <button class="btn big done">Done</button>
+      </div>`;
+      this.bind('.done', () => { app.showGarage(false); this.map(); });
+      return;
+    }
     this.el.innerHTML = `
       <div class="garage-panel">
         <div class="gp-head"><span>🔧 Garage</span><span class="gp-stars">⭐ ${availableStars(p)} to spend</span></div>
