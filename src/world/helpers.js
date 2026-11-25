@@ -40,7 +40,7 @@ export function yusufHouse(w, x, z, ry) {
   w.house(x, z, ry, { w: 12, d: 12, h: 5.5, wall: 0xd8b48a, roof: 0x5a4636, garage: true });
   const c = Math.cos(ry), s = Math.sin(ry);
   // driveway + open garage with a workbench
-  w.box(x + (8.6) * c + 8 * s, 0.02, z - 8.6 * s + 8 * c, 5.5, 0.06, 10, 0xbfbab0, { ry });
+  w.box(x + (8.6) * c + 8 * s, 0.02, z - 8.6 * s + 8 * c, 5.5, 0.26, 10, 0xbfbab0, { ry });
   w.lawn(x, z - 18 * c, 30, 22, 0x86c460, ry);
 }
 

@@ -152,7 +152,7 @@ export function buildGreensboro(w, P) {
   w.addDyn((dt, t) => jets.forEach((j, i) => { j.scale.y = (i === 8 ? 9 : 4) + Math.sin(t * 3 + i) * 1.5; }));
   // ballpark
   w.lawn(95, 4320, 80, 60, 0x4fa83a);
-  w.box(95, 0.03, 4330, 24, 0.06, 24, 0xb5814a, { ry: PI / 4 });
+  w.box(95, 0.1, 4330, 24, 0.12, 24, 0xb5814a, { ry: PI / 4 });
   for (let i = 0; i < 7; i++) { const a = -PI / 2 + i * 0.35; w.box(95 + Math.cos(a) * 44, 0, 4300 + Math.sin(a) * 22 + 30, 16, 6 + (i % 2), 7, 0x2f5a8a, { ry: -a + PI / 2, collide: true }); }
   for (const [x, z] of [[60, 4295], [130, 4295], [60, 4348], [130, 4348]]) { w.box(x, 0, z, 1, 26, 1, 0x888888, { collide: true }); w.box(x, 26, z, 5, 3, 1, 0xffffee, { batch: 'glow' }); }
   label3d(w, 'Ballpark', 95, 36, 4320, 3.6);
@@ -178,8 +178,8 @@ export function buildGreensboro(w, P) {
   w.box(-160, 0, 4512, 6, 26, 6, 0xa4513c, { collide: true });
   w.shape('cone4', -160, 26, 4512, 7, 6, 7, 0x2f62c4);
   w.shape('disc', -160, 18, 4515.2, 3.6, 0.2, 3.6, 0xffffff, { rx: PI / 2 });
-  w.box(-195, 0, 4515, 50, 0.1, 22, 0x2f62c4);
-  w.box(-195, 0.1, 4515, 44, 0.1, 16, 0x4fa83a);
+  w.box(-195, 0.1, 4515, 50, 0.12, 22, 0x2f62c4);
+  w.box(-195, 0.2, 4515, 44, 0.12, 16, 0x4fa83a);
   for (let i = 0; i < 4; i++) w.box(-135 + i * 2.4, 1.5, 4520, 1, 2.4, 1, 0x5a4a32);
   w.box(-131.5, 0, 4520, 12, 1.5, 3, 0xd8d4c8);
   label3d(w, 'N.C. A&T', -160, 40, 4512, 3.8);

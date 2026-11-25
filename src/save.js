@@ -10,7 +10,7 @@ const KEY = 'backyard-squadron-v1';
 const newProfile = () => ({ missions: {}, upgrades: { wings: false, blower: false, floats: false }, paint: 'cardboard', paints: ['cardboard'], spent: 0, seenEnding: false });
 const defaults = () => ({
   profiles: Object.fromEntries(IDS.map(id => [id, newProfile()])),
-  settings: { controls: null, sensitivity: 1, invert: false, assist: true, easy: true, graphics: 'fancy', sound: true, music: true },
+  settings: { controls: null, sensitivity: 1, invert: false, assist: true, easy: false, graphics: 'fast', sound: true, music: true },
   last: null,
 });
 

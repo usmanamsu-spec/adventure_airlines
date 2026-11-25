@@ -208,6 +208,7 @@ export function buildTrip(w) {
   }
   for (let i = 0; i < 46; i++) {
     const z = 1980 + r() * 680, x = P(z) + (r() - 0.5) * 520;
+    if (!w.fancy && i % 2) continue;
     w.mist(x, G(x, z) + 14 + r() * 24, z, 55 + r() * 40, 0.3);
   }
   const CX = P(CLINGMANS.z) + CLINGMANS.dx, CZ = CLINGMANS.z, CY = G(CX, CZ);
@@ -229,7 +230,7 @@ export function buildTrip(w) {
     if (Math.abs(x - P(z)) < 34) continue;
     w.tree(x, z, { kind: r() < 0.35 ? 'pine' : 'round', s: 1.15, collide: false });
   }
-  for (let i = 0; i < 20; i++) { const z = 2700 + r() * 420, x = P(z) + (r() - 0.5) * 500; w.mist(x, G(x, z) + 18 + r() * 20, z, 60, 0.25); }
+  for (let i = 0; i < 20; i++) { const z = 2700 + r() * 420, x = P(z) + (r() - 0.5) * 500; if (!w.fancy && i % 2) continue; w.mist(x, G(x, z) + 18 + r() * 20, z, 60, 0.25); }
   // Linn Cove Viaduct: a road that curves around the side of the mountain on stilts
   const vpts = [];
   for (let i = 0; i <= 16; i++) {

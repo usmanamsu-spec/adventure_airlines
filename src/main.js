@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import './style.css';
 import { makeBoy, lookAt, setSlippers, BOYS, KIDS, RUMAN } from './characters.js';
 import { buildPlane } from './plane.js';
@@ -28,13 +29,13 @@ class App {
     const touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if ((store.data.v || 0) < 2) this.settings.controls = touch ? 'touch' : 'keys';
     if ((store.data.v || 0) < 3) this.settings.assist = true; // landing helper on for kids
-    if ((store.data.v || 0) < 4) { this.settings.easy = true; store.data.v = 4; store.save(); } // easy flying on for kids
+    if ((store.data.v || 0) < 5) { this.settings.easy = false; this.settings.graphics = 'fast'; store.data.v = 5; store.save(); } // regular flying + fast graphics by default
     if (!this.settings.controls) this.settings.controls = touch ? 'touch' : 'keys';
     this.sound = new Sound(this.settings);
     this.root = document.getElementById('app');
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.6));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     this.renderer.toneMapping = THREE.NeutralToneMapping;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -167,11 +168,12 @@ class App {
     ground.receiveShadow = true;
     s.add(ground);
     const fence = new THREE.MeshStandardMaterial({ color: 0xb08a66, roughness: 0.95 });
-    for (let i = -40; i <= 40; i++) {
-      const b = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.8, 0.03), fence);
-      b.position.set(i * 0.165, 0.9, -5.5);
-      b.receiveShadow = true;
-      s.add(b);
+    { // the fence as one mesh instead of 81 boards
+      const boards = [];
+      for (let i = -40; i <= 40; i++) boards.push(new THREE.BoxGeometry(0.15, 1.8, 0.03).translate(i * 0.165, 0.9, -5.5));
+      const f = new THREE.Mesh(mergeGeometries(boards), fence);
+      f.receiveShadow = true;
+      s.add(f);
     }
     const tree = new THREE.Group();
     const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.25, 2.6, 8), new THREE.MeshStandardMaterial({ color: 0x6a4a32 }));
@@ -242,8 +244,8 @@ class App {
     const key = `${name}:${variant}`;
     if (!this.boyCache.has(key)) {
       const arms = variant === 'drive' ? { R: 'drive', L: 'drive' } : { R: 'relaxed', L: 'relaxed' };
-      const b = makeBoy(BOYS[name], { lod: 'lo', arms, legs: 'sit', headTilt: [0.08, 0, 0] });
-      b.traverse(o => { if (o.isMesh) o.castShadow = true; });
+      const b = makeBoy(BOYS[name], { lod: 'min', arms, legs: 'sit', headTilt: [0.08, 0, 0] });
+      b.traverse(o => { if (o.isMesh) o.castShadow = false; }); // tiny in the plane: skip their shadows (big saving)
       this.boyCache.set(key, b);
     }
     const b = this.boyCache.get(key);
@@ -293,7 +295,7 @@ class App {
     run.camera.aspect = this.aspect;
     run.camera.updateProjectionMatrix();
     run.updateCamera(0);
-    if (this.settings.graphics !== 'fast') this.post.setup(run.scene, run.camera); else this.post.dispose();
+    if (this.settings.graphics === 'fancy') this.post.setup(run.scene, run.camera); else this.post.dispose();
     this.ui.clear();
     this.hud.show();
     this.state = 'mission';

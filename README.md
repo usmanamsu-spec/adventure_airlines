@@ -35,7 +35,7 @@ Every mission has 3 stars: **finish it**, **collect enough candy 🍬**, and mak
 
 The game helps kids out: big rainbow rings, gentle aim-assist toward the next target, a candy magnet, a ground cushion, 6 rolls of duct tape, and a **Landing helper** that's on by default.
 
-**Easy flying** (on by default, in ⚙️ Settings) makes it really simple: **let go of the stick and the plane flies to the next ring by itself**; light steering gets a helping hand; height is automatic; it hops over buildings and trees; **bumps don't cause damage**; rings count even if you just fly close by; targets and the candy magnet are bigger; fewer candies are needed for the candy star; and **landing is fully automatic**. Turn it off for more of a challenge.
+**Easy flying** is **off** by default (regular flying). Turn it on with the **🐣 Easy flying** button on the mission menu (or in ⚙️ Settings): the plane flies to the next ring by itself when you let go of the stick, light steering gets a helping hand, bumps cause no damage, rings count even if you just fly close by, targets and the candy magnet are bigger, fewer candies are needed for the candy star, and landing is fully automatic.
 
  Stars buy plane upgrades in the **Garage**: umbrella wings for tighter turns, a leaf-blower engine for a bigger boost tank, and flamingo floats for landing on water. The **Landing helper** setting makes landings easier.
 
@@ -53,7 +53,7 @@ The leaves turn red, orange and gold from Tennessee onward, with falling leaves 
 Pick **Faris** and the cardboard plane turns into his shiny, pointy, stainless-steel flying pickup truck (a Cybertruck-style homage, with no logos). Faris drives in the glass cabin and the rest of the squad rides in the open bed, with extra truck chatter from the back.
 
 ### Graphics
-**Fancy** graphics (default; ⚙️ Settings → Graphics) add a glow on bright light (the sun, rings, city lights, fireworks), mirror-like water that reflects the sky and landmarks, and lighting that takes its colors from the sky. Real ray tracing isn't available in iPad browsers, so these effects approximate that look. If an older iPad stutters, switch to **Fast**.
+**Fast** graphics are the default. **Fancy** graphics (⚙️ Settings → Graphics) add a glow on bright light (the sun, rings, city lights, fireworks), mirror-like water that reflects the sky and landmarks, and lighting that takes its colors from the sky. Real ray tracing isn't available in iPad browsers, so these effects approximate that look. Fancy can lag on older iPads.
 
 ## Run it locally
 
@@ -102,5 +102,6 @@ node tests/flow.mjs  http://localhost:4173     # menus → mission → results �
 node tests/screens.mjs http://localhost:4173   # screenshots into tests/out/
 node tests/easy.mjs http://localhost:4173      # Easy flying with nobody touching the controls
 node tests/zoom.mjs http://localhost:4173      # pinch / double-tap zoom is blocked, two-thumb controls still work
-node tests/clumsy.mjs http://localhost:4173    # a 'clumsy kid' wiggles the stick randomly; every mission still finishes
+node tests/clumsy.mjs http://localhost:4173    # a 'clumsy kid' wiggles the stick randomly (Easy flying); every mission still finishes
+node tests/perf.mjs http://localhost:4173 fast  # draw calls / triangles per frame on the title screen and along the flight
 ```

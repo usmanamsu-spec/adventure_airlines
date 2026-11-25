@@ -18,6 +18,7 @@ const BASE = {
   cone: new THREE.ConeGeometry(0.5, 1, 7).translate(0, 0.5, 0),
   cone4: new THREE.ConeGeometry(0.5, 1, 4).rotateY(Math.PI / 4).translate(0, 0.5, 0),
   sphere: new THREE.IcosahedronGeometry(0.5, 1),
+  sphere0: new THREE.IcosahedronGeometry(0.5, 0),
   cyl: new THREE.CylinderGeometry(0.5, 0.5, 1, 10).translate(0, 0.5, 0),
   cyl6: new THREE.CylinderGeometry(0.5, 0.5, 1, 6).translate(0, 0.5, 0),
   dome: new THREE.SphereGeometry(0.5, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2),
@@ -179,6 +180,7 @@ export class World {
     this.renderer = renderer;
     this.timeBlend = timeBlend;
     this.waters = [];
+    this.lowDetail = (length || 0) > 2000; // the long flight: simpler trees
     if (!WIN) WIN = windowTextures();
     this.scene = scene;
     this.group = new THREE.Group();
@@ -308,8 +310,9 @@ export class World {
       const blossom = !color && r() < 0.14;
       const col = color ?? (this.isFall(z) ? FALL[Math.floor(r() * FALL.length)] : blossom ? [0xff9fd0, 0xffb347, 0xfff07a][Math.floor(r() * 3)] : [0x55b83a, 0x6cc845, 0x48a83a, 0x7ad04f][Math.floor(r() * 4)]);
       const rad = h * 0.42;
-      this.shape('sphere', x, y0 + h * 0.62, z, rad * 2, rad * 1.8, rad * 2, col);
-      this.shape('sphere', x + rad * 0.5, y0 + h * 0.5, z + rad * 0.3, rad * 1.3, rad * 1.2, rad * 1.3, new THREE.Color(col).multiplyScalar(0.92));
+      const sph = this.lowDetail ? 'sphere0' : 'sphere';
+      this.shape(sph, x, y0 + h * 0.62, z, rad * 2, rad * 1.8, rad * 2, col);
+      this.shape(sph, x + rad * 0.5, y0 + h * 0.5, z + rad * 0.3, rad * 1.3, rad * 1.2, rad * 1.3, new THREE.Color(col).multiplyScalar(0.92));
       if (collide) this.addSphereCollider(new THREE.Vector3(x, y0 + h * 0.6, z), rad * 0.95);
     }
   }
@@ -319,17 +322,17 @@ export class World {
     const ry = Math.atan2(dx, dz);
     this.roads.push([x1, z1, x2, z2, w]);
     const y = (this.groundHeight(x1, z1) + this.groundHeight(x2, z2)) / 2;
-    this.box((x1 + x2) / 2, y + 0.02, (z1 + z2) / 2, w, 0.06, len, color, { ry });
+    this.box((x1 + x2) / 2, y + 0.04, (z1 + z2) / 2, w, 0.2, len, color, { ry });
     if (lines) {
       const n = Math.floor(len / 8);
       for (let i = 0; i < n; i++) {
         const t = (i + 0.5) / n;
-        this.box(x1 + dx * t, y + 0.06, z1 + dz * t, 0.25, 0.03, 3, 0xf2d24a, { ry });
+        this.box(x1 + dx * t, y + 0.24, z1 + dz * t, 0.25, 0.06, 3, 0xf2d24a, { ry });
       }
     }
   }
-  circle(x, z, r, color = 0x4a4d52) { this.shape('disc', x, 0.02, z, r * 2, 0.06, r * 2, color); }
-  lawn(x, z, w, d, color = 0x7fbf5a, ry = 0) { this.box(x, 0.01, z, w, 0.04, d, color, { ry }); }
+  circle(x, z, r, color = 0x4a4d52) { this.shape('disc', x, 0.04, z, r * 2, 0.2, r * 2, color); }
+  lawn(x, z, w, d, color = 0x7fbf5a, ry = 0) { this._lawnK = ((this._lawnK || 0) + 1) % 4; this.box(x, 0.02, z, w, 0.1 + this._lawnK * 0.025, d, color, { ry }); }
 
   /** a patch of bright little flowers */
   flowers(x, z, w = 8, d = 4, n = 14) {
@@ -346,8 +349,8 @@ export class World {
   }
 
   pool(x, z, w = 6, d = 4) {
-    this.box(x, 0.02, z, w + 1, 0.1, d + 1, 0xe8e2d4);
-    this.box(x, 0.06, z, w, 0.1, d, 0x3fc2e8);
+    this.box(x, 0.02, z, w + 1, 0.16, d + 1, 0xe8e2d4);
+    this.box(x, 0.1, z, w, 0.14, d, 0x3fc2e8);
   }
 
   waterRect(x, z, w, d, color = 0x3f8fd0) {
@@ -362,17 +365,17 @@ export class World {
   }
   addWater(geo, x, z, color, radius) {
     const cheap = new THREE.Mesh(geo, this.waterMat(color));
-    cheap.rotation.x = -Math.PI / 2; cheap.position.set(x, 0.08, z); cheap.receiveShadow = true;
+    cheap.rotation.x = -Math.PI / 2; cheap.position.set(x, 0.17, z); cheap.receiveShadow = true;
     this.group.add(cheap);
     if (!this.fancy) return;
     // mirror-like water that reflects the sky, the landmarks and your plane
     const fancy = new Water(geo, {
-      textureWidth: 512, textureHeight: 512, waterNormals: makeWaterNormals(),
+      textureWidth: 384, textureHeight: 384, waterNormals: makeWaterNormals(),
       sunDirection: new THREE.Vector3(0.4, 0.8, 0.3).normalize(), sunColor: 0xffffff,
       waterColor: new THREE.Color(color).multiplyScalar(0.45), distortionScale: 2.2, fog: true, alpha: 1,
     });
     fancy.material.uniforms.size.value = 4;
-    fancy.rotation.x = -Math.PI / 2; fancy.position.set(x, 0.1, z);
+    fancy.rotation.x = -Math.PI / 2; fancy.position.set(x, 0.18, z);
     fancy.visible = false;
     this.group.add(fancy);
     this.waters.push({ cheap, fancy, x, z, radius });
@@ -414,10 +417,10 @@ export class World {
     const T = this.time;
     const night = this.timeName === 'night';
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, flatShading: true });
-    for (const m of this.solid.buildChunks(mat, this.chunk)) this.group.add(m);
+    for (const m of this.solid.buildChunks(mat, this.chunk)) { m.castShadow = this.fancy; this.group.add(m); }
     const glassMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.45, metalness: 0.1, map: WIN.day, emissiveMap: WIN.lit, emissive: 0xffffff, emissiveIntensity: T.glow * 0.9 });
     this.glassMat = glassMat;
-    for (const m of this.glass.buildChunks(glassMat, this.chunk)) this.group.add(m);
+    for (const m of this.glass.buildChunks(glassMat, this.chunk)) { m.castShadow = this.fancy; this.group.add(m); }
     this.glowMat = new THREE.MeshStandardMaterial({ vertexColors: true, emissive: 0xffd98a, emissiveIntensity: night ? 1.2 : 0.2, roughness: 0.6 });
     for (const m of this.glow.buildChunks(this.glowMat, this.chunk)) { m.castShadow = false; this.group.add(m); }
 
@@ -447,7 +450,7 @@ export class World {
     this.group.add(ground);
 
     // sky dome
-    const SKY_R = 1700;
+    const SKY_R = 1100;
     const sky = new THREE.SphereGeometry(SKY_R, 32, 16);
     const sp = sky.attributes.position;
     const sc = [];
@@ -491,7 +494,7 @@ export class World {
     this.group.add(hemi);
     const sun = new THREE.DirectionalLight(T.sun, T.sunI);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.mapSize.set(this.fancy ? 2048 : 1024, this.fancy ? 2048 : 1024);
     const sc2 = sun.shadow.camera;
     sc2.left = -70; sc2.right = 70; sc2.top = 70; sc2.bottom = -70; sc2.near = 1; sc2.far = 600;
     sun.shadow.bias = -0.0006;
@@ -538,7 +541,7 @@ export class World {
     if (this.sunBall) { this.sunBall.position.copy(this.sunDir).multiplyScalar(this.SKY_R * 0.92); this.sunBall.material.color.copy(C(0xfff6d0, 0xffb060)); }
     for (const w of this.waters) { w.fancy.material.uniforms.sunDirection.value.copy(this.sunDir); w.fancy.material.uniforms.sunColor.value.copy(this.sun.color); }
     const level = Math.round(k * 4);
-    if (level !== this.envLevel) { this.envLevel = level; this.makeEnv(); }
+    if (level !== this.envLevel && (this.fancy || this.envLevel < 0)) { this.envLevel = level; this.makeEnv(); }
   }
 
   /** keep the sky and shadow camera centred on the player */
@@ -546,13 +549,21 @@ export class World {
     this.sky.position.set(pos.x, 0, pos.z);
     if (this.timeBlend) this.applyTime(smooth(this.timeBlend.z0, this.timeBlend.z1, pos.z));
     // reflective water only when close (each one renders a mirror image of the scene)
+    // at most ONE mirror at a time (each one re-renders the whole scene): the closest water nearby
+    let best = null, bd = Infinity;
     for (const w of this.waters) {
-      const near = Math.hypot(pos.x - w.x, pos.z - w.z) < w.radius + 550;
-      w.fancy.visible = near; w.cheap.visible = !near;
-      if (near) w.fancy.material.uniforms.time.value += 1 / 60;
+      const d = Math.max(0, Math.hypot(pos.x - w.x, pos.z - w.z) - w.radius * 0.3);
+      if (d < 450 && d < bd) { bd = d; best = w; }
     }
-    this.sun.position.copy(pos).addScaledVector(this.sunDir, 300);
-    this.sun.target.position.copy(pos);
+    for (const w of this.waters) {
+      const on = w === best;
+      w.fancy.visible = on; w.cheap.visible = !on;
+      if (on) w.fancy.material.uniforms.time.value += 1 / 60;
+    }
+    const texel = 140 / this.sun.shadow.mapSize.x;
+    const snap = pos.clone(); snap.x = Math.round(snap.x / texel) * texel; snap.z = Math.round(snap.z / texel) * texel; snap.y = Math.round(snap.y / texel) * texel;
+    this.sun.position.copy(snap).addScaledVector(this.sunDir, 300);
+    this.sun.target.position.copy(snap);
   }
 
   update(dt, t) { for (const f of this.dyn) f(dt, t); }

@@ -65,6 +65,7 @@ export class UI {
         <div class="tb-stat">⭐ ${availableStars(p)} <small>to spend</small></div>
         <div class="tb-stat">🧦 ${socksFound(p)}/${MISSIONS.length}</div>
         <div class="tb-spacer"></div>
+        <button class="btn easymode ${store.settings.easy === true ? 'on' : ''}">🐣 Easy flying: ${store.settings.easy === true ? 'ON' : 'OFF'}</button>
         <button class="btn garage">🔧 Garage</button>
         <button class="btn settings">⚙️</button>
         <button class="btn switch">👥 Switch pilot</button>
@@ -76,6 +77,7 @@ export class UI {
         </div>
       </div>`;
     this.bind('.mcard', (b) => this.briefing(Number(b.dataset.i)));
+    this.bind('.easymode', () => { store.settings.easy = store.settings.easy !== true; store.save(); this.map(); });
     this.bind('.garage', () => this.garage());
     this.bind('.settings', () => this.settings(() => this.map()));
     this.bind('.switch', () => this.app.toTitle());
@@ -162,11 +164,11 @@ export class UI {
       </div></div>
       <div class="row"><span>Steering sensitivity</span><input type="range" class="sens" min="0.6" max="1.8" step="0.1" value="${s.sensitivity}"></div>
       <div class="row"><span>Flip up/down</span><button class="tog inv ${s.invert ? 'on' : ''}">${s.invert ? 'On' : 'Off'}</button></div>
-      <div class="row"><span>Graphics <small>(Fancy: glow, mirror-like water, sky lighting)</small></span><div class="seg">
-        <button data-g="fancy" class="${s.graphics !== 'fast' ? 'on' : ''}">✨ Fancy</button>
-        <button data-g="fast" class="${s.graphics === 'fast' ? 'on' : ''}">⚡ Fast</button>
+      <div class="row"><span>Graphics <small>(Fancy adds glow, mirror-like water and sky lighting, but can lag on older iPads)</small></span><div class="seg">
+        <button data-g="fast" class="${s.graphics !== 'fancy' ? 'on' : ''}">⚡ Fast</button>
+        <button data-g="fancy" class="${s.graphics === 'fancy' ? 'on' : ''}">✨ Fancy</button>
       </div></div>
-      <div class="row"><span>Easy flying <small>(auto height, dodges buildings, lands itself)</small></span><button class="tog easy ${s.easy !== false ? 'on' : ''}">${s.easy !== false ? 'On' : 'Off'}</button></div>
+      <div class="row"><span>🐣 Easy flying <small>(the plane steers to the rings, no damage, lands itself)</small></span><button class="tog easy ${s.easy === true ? 'on' : ''}">${s.easy === true ? 'On' : 'Off'}</button></div>
       <div class="row"><span>Landing helper</span><button class="tog assist ${s.assist ? 'on' : ''}">${s.assist ? 'On' : 'Off'}</button></div>
       <div class="row"><span>Sound effects</span><button class="tog snd ${s.sound ? 'on' : ''}">${s.sound ? 'On' : 'Off'}</button></div>
       <div class="row"><span>Music</span><button class="tog mus ${s.music ? 'on' : ''}">${s.music ? 'On' : 'Off'}</button></div>
@@ -186,7 +188,7 @@ export class UI {
     modal.querySelector('.sens').addEventListener('input', (e) => { s.sensitivity = Number(e.target.value); save(); });
     const tog = (cls, key) => modal.querySelector(cls).addEventListener('click', this.click(() => { s[key] = !s[key]; save(); modal.remove(); this.settings(back); }));
     modal.querySelectorAll('[data-g]').forEach(b => b.addEventListener('click', this.click(() => { s.graphics = b.dataset.g; save(); modal.remove(); this.settings(back); })));
-    modal.querySelector('.easy').addEventListener('click', this.click(() => { s.easy = s.easy === false; save(); modal.remove(); this.settings(back); }));
+    modal.querySelector('.easy').addEventListener('click', this.click(() => { s.easy = s.easy !== true; save(); modal.remove(); this.settings(back); }));
     tog('.inv', 'invert'); tog('.assist', 'assist'); tog('.snd', 'sound'); tog('.mus', 'music');
     modal.querySelector('.reset').addEventListener('click', this.click(() => {
       if (confirm('Erase all stars and upgrades for BOTH pilots?')) { store.reset(); app.reloadProfiles(); modal.remove(); app.toTitle(); }

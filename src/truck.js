@@ -2,6 +2,7 @@
 // Faris drives in the glass cabin; the rest of the squad rides in the open bed.
 // Same interface as buildPlane(): { group, body, seats, seatOrder, tips, tail, setUpgrades, setNight, update }.
 import * as THREE from 'three';
+import { bakeTree } from './characters.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const W = 2.2;          // body width
@@ -164,6 +165,7 @@ export function buildTruck() {
     const t = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.34, 28), tire);
     t.rotation.z = Math.PI / 2; t.castShadow = true;
     const c = new THREE.Mesh(new THREE.CircleGeometry(0.34, 28), cover);
+    c.userData.keep = true; // spins
     c.position.x = s * 0.175; c.rotation.y = s * Math.PI / 2;
     wg.add(t, c);
     body.add(wg);
@@ -211,6 +213,8 @@ export function buildTruck() {
   spot.target.position.set(0, -3, 25);
   body.add(spot, spot.target);
 
+  // merge the many panels into a few meshes (much faster to draw); spinning wheel covers stay separate
+  bakeTree(group, [body]);
   let t = 0;
   return {
     group, body, seats, seatOrder, kind: 'truck',

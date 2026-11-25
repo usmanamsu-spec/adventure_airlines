@@ -343,3 +343,6 @@ html, body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .pilot-card { padding: 4px 4px 6px; border-width: 3px; border-radius: 16px; }
 .pc-name { font-size: clamp(13px, 2.8vw, 19px); margin-top: 2px; }
 .pc-stars { font-size: clamp(10px, 1.9vw, 13px); }
+
+.topbar .btn.easymode { background: #fff; }
+.topbar .btn.easymode.on { background: linear-gradient(#8fe36a, #3f9f2a); color: #fff; }

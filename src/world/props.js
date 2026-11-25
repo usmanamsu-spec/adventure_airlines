@@ -69,12 +69,12 @@ export function trainCar(color, len = 16) {
 export function rails(world, x1, z1, x2, z2) {
   const dx = x2 - x1, dz = z2 - z1, len = Math.hypot(dx, dz), ry = Math.atan2(dx, dz);
   const px = Math.cos(ry), pz = -Math.sin(ry);
-  world.box((x1 + x2) / 2, 0.02, (z1 + z2) / 2, 4.2, 0.1, len, 0x8a7a6a, { ry });
-  for (const s of [-0.75, 0.75]) world.box((x1 + x2) / 2 + px * s, 0.12, (z1 + z2) / 2 + pz * s, 0.12, 0.18, len, 0x707680, { ry });
+  world.box((x1 + x2) / 2, 0.02, (z1 + z2) / 2, 4.2, 0.26, len, 0x8a7a6a, { ry });
+  for (const s of [-0.75, 0.75]) world.box((x1 + x2) / 2 + px * s, 0.3, (z1 + z2) / 2 + pz * s, 0.12, 0.18, len, 0x707680, { ry });
   const n = Math.floor(len / 2.2);
   for (let i = 0; i < n; i++) {
     const t = (i + 0.5) / n;
-    world.box(x1 + dx * t, 0.06, z1 + dz * t, 2.6, 0.1, 0.3, 0x5a4030, { ry });
+    world.box(x1 + dx * t, 0.2, z1 + dz * t, 2.6, 0.14, 0.3, 0x5a4030, { ry });
   }
 }
 

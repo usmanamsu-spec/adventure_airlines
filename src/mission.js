@@ -7,7 +7,7 @@ import { buildTruck } from './truck.js';
 import { Flight, BASE_SPEED } from './flight.js';
 import { SCRIPTS, resolveSpeaker, fillText, isLittle } from './dialogue.js';
 import { clamp, damp, wrapAngle, DEG, lerp } from './util.js';
-import { Confetti, Puffs, birdFlock, addTraffic, candy, rainbowRing, Shockwaves, Fireworks, skyRainbow, Leaves } from './fx.js';
+import { Confetti, Puffs, birdFlock, addTraffic, candyPool, juicePool, rainbowRing, Shockwaves, Fireworks, skyRainbow, Leaves } from './fx.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
@@ -57,14 +57,14 @@ export class MissionRun {
     this.scene = new THREE.Scene();
     this.scene.environment = this.app.envMap;
     this.scene.environmentIntensity = def.time === 'night' ? 0.15 : 0.45;
-    const fancy = this.settings.graphics !== 'fast';
+    const fancy = this.settings.graphics === 'fancy';
     const world = new World(this.scene, { ...def.world, time: def.time, seed: 11, fancy, renderer: this.app.renderer });
     this.world = world;
     this.spec = def.build(world, { player: this.player, upgrades: this.profile.upgrades });
     world.finish();
     const S = this.spec;
     // Easy flying (on by default): no damage, bigger targets, the plane steers itself and lands itself
-    this.easy = this.settings.easy !== false;
+    this.easy = this.settings.easy === true;
     this.noDamage = !!S.noDamage || this.easy;
 
     // plane + crew
@@ -87,12 +87,8 @@ export class MissionRun {
     this.objIndex = 0;
 
     // pickups
-    this.juices = S.juice.map(p => {
-      const m = juiceBox();
-      m.position.set(...p);
-      this.scene.add(m);
-      return m;
-    });
+    this.juicePool = juicePool(this.scene, S.juice.length);
+    this.juices = S.juice.map((p, i) => { const it = this.juicePool.items[i]; it.position.set(...p); return it; });
     if (S.sock) {
       this.sock = sockMesh();
       this.sock.position.set(...S.sock);
@@ -114,7 +110,8 @@ export class MissionRun {
     this.scene.add(arrow);
 
     // camera
-    this.camera = new THREE.PerspectiveCamera(62, this.app.aspect, 0.3, 2400);
+    // near 1.0 + far just past the fog: sharp depth (no flicker) and nothing drawn that the fog hides anyway
+    this.camera = new THREE.PerspectiveCamera(62, this.app.aspect, 1.0, world.fogRange[1] + 120);
     this.camPos = new THREE.Vector3();
     this.camLook = new THREE.Vector3();
 
@@ -210,7 +207,7 @@ export class MissionRun {
 
   makeZone(L) {
     const g = new THREE.Group();
-    const y = (L.water ? 0.12 : this.world.groundHeight(L.p[0], L.p[1])) + 0.1;
+    const y = (L.water ? 0.2 : this.world.groundHeight(L.p[0], L.p[1])) + 0.4;
     const strip = new THREE.Mesh(new THREE.PlaneGeometry(L.wid, L.len), new THREE.MeshBasicMaterial({ color: 0x5cff7a, transparent: true, opacity: 0.28, depthWrite: false }));
     strip.rotation.x = -Math.PI / 2;
     g.add(strip);
@@ -414,7 +411,7 @@ export class MissionRun {
     this._wasBoosting = boostingNow;
     if (this.flight.juice < 0.12 && this.t - (this._juiceLowT || -99) > 30) { this._juiceLowT = this.t; this.chat('juiceLow', { priority: 0 }); }
     const F = this.flight;
-    const easy = !this.autopilot && this.settings.easy !== false;
+    const easy = !this.autopilot && this.settings.easy === true;
     let input = this.autopilot ? { ...this.autoInput(), honk: this.app.input.honk, trick: this.app.input.trick } : this.app.input;
     if (easy) input = this.easyInput(input, dt);
     const opt = { cruise: this.spec.cruise || 1, turn: this.profile.upgrades.wings ? 1.7 : 1.35, maxRoll: (this.profile.upgrades.wings ? 58 : 50) * DEG, tank: this.profile.upgrades.blower, free: this.freeBoost > 0 };
@@ -808,16 +805,16 @@ export class MissionRun {
       }
     }
     if (this._clusters) for (const q of this._clusters) { q.y = Math.max(q.y, this.groundAt(q) + 5); if (!blocked(q)) out.push(q); }
+    this.candyPool = candyPool(this.scene, out.length);
     this.candies = out.map((q, i) => {
-      const m = candy(i);
+      const m = this.candyPool.items[i];
       m.position.copy(q);
       m.userData.base = q.clone();
-      this.scene.add(m);
       return m;
     });
     const chase = S.objectives.some(o => o.type === 'chase');
     const ratio = S.candyRatio || (chase ? 0.25 : this._clusters ? this._clusterFactor * 0.7 : 0.6);
-    this.candyNeed = Math.max(1, Math.ceil(this.candies.length * ratio * (this.settings.easy !== false ? 0.7 : 1)));
+    this.candyNeed = Math.max(1, Math.ceil(this.candies.length * ratio * (this.settings.easy === true ? 0.7 : 1)));
   }
 
   updateCandies(dt) {
@@ -1022,6 +1019,8 @@ export class MissionRun {
     for (const j of this.juices) { j.rotation.y += dt * 2; j.position.y += Math.sin(t * 3 + j.position.x) * 0.01; }
     if (this.sock) this.sock.rotation.y += dt * 1.5;
     if (this.candies) for (const c of this.candies) { if (!c.visible) continue; c.rotation.y += dt * 3; c.rotation.z = Math.sin(t * 2 + c.userData.base.x) * 0.4; }
+    this.candyPool?.sync();
+    this.juicePool?.sync();
     for (const o of this.objectives || []) if (o.type === 'rings') o.meshes.forEach((g, k) => { if (k === o.count) g.userData.torus.rotation.z += dt * 1.5; });
     if (this.hat) this.hat.position.y = 0.3 + Math.sin(t * 2) * 0.12;
     for (const o of this.objectives) {
@@ -1101,6 +1100,7 @@ export class MissionRun {
     const fov = baseFov + (F.boosting ? 10 : 0) + this.fovKick;
     if (Math.abs(this.camera.fov - fov) > 0.1) { this.camera.fov = lerp(this.camera.fov, fov, 1 - Math.exp(-3 * dt)); this.camera.updateProjectionMatrix(); }
     this.world.follow(F.pos);
+    this.puffs.setScale(this.camera, this.app.renderer.getDrawingBufferSize(new THREE.Vector2()).y);
   }
 
   updateHud(force = false) {

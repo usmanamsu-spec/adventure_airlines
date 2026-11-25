@@ -300,18 +300,21 @@ function sculptedSphere(S, ws, hs) {
  * opts: { lod: 'hi'|'lo', arms: {R,L} pose names ('wave'|'hip'|'relaxed'|'drive'), legs: 'stand'|'sit', slippers: [hexL, hexR] }
  */
 export function makeBoy(spec, opts = {}) {
-  const lo = opts.lod === 'lo';
+  const lo = opts.lod === 'lo' || opts.lod === 'min';
+  const min = opts.lod === 'min';
   const plaidCanvas = makePlaidCanvas();
-  const pm = (ru, rv, rot, off) => plaidMaterial(plaidCanvas, ru, rv, rot, off, lo);
+  // tiny in-plane kids: one shared pajama material (far fewer draw calls); everyone else: tailored plaid per part
+  const pm = (ru, rv, rot, off) => opts.lod === 'min' ? plaidMaterial(plaidCanvas, 3, 3, 0, [0, 0], true) : plaidMaterial(plaidCanvas, ru, rv, rot, off, lo);
   const boy = new THREE.Group();
   boy.name = spec.name;
   const g = spec.girth, h = spec.height;
   const R = spec.R;
   const r = rng(spec.seed);
+  if (opts.lod === 'min') spec = { ...spec, _min: true };
   const arms = opts.arms || spec.arms || (spec.pose === 'wave' ? { R: 'wave', L: 'relaxed' } : spec.pose === 'hip' ? { R: 'hip', L: 'relaxed' } : { R: 'relaxed', L: 'relaxed' });
   const legs = opts.legs || 'stand';
   const slippers = opts.slippers || spec.slippers;
-  const Q = lo ? 0.5 : 1; // tessellation quality
+  const Q = min ? 0.32 : lo ? 0.5 : 1; // tessellation quality
 
   const skin = lo
     ? new THREE.MeshStandardMaterial({ color: spec.skin, roughness: 0.55 })
@@ -484,7 +487,7 @@ export function makeBoy(spec, opts = {}) {
 
     const dir = W.clone().sub(E).normalize();
     const palmN = pose === 'wave' ? V(0, 0.1, 1) : pose === 'drive' ? V(0, -1, 0.05) : V(-s, 0, 0.15);
-    const hand = makeHand(pose, s, handSkin, skin, lo);
+    const hand = makeHand(pose, s, handSkin, skin, lo, min);
     const yAxis = dir.clone().negate();
     const xAxis = palmN.clone().addScaledVector(yAxis, -palmN.dot(yAxis)).normalize();
     const zAxis = new THREE.Vector3().crossVectors(xAxis, yAxis);
@@ -510,13 +513,19 @@ export function makeBoy(spec, opts = {}) {
   boy.userData.hipY = Y(0.56) * scale;
   boy.userData.scale = scale;
   boy.userData.spec = spec;
+  if (lo) bake(boy, { keepEyes: !min });
   return boy;
 }
 
 // ---------------------------------------------------------------- hand
-function makeHand(pose, s, mat, palmMat, lo) {
+function makeHand(pose, s, mat, palmMat, lo, min = false) {
   const hand = new THREE.Group();
   const tz = -s;
+  if (min) {
+    const m = mesh(new THREE.SphereGeometry(1, 10, 8), palmMat, hand);
+    m.scale.set(0.016, 0.036, 0.03); m.position.set(0.002, -0.034, 0);
+    return hand;
+  }
   const palm = mesh(new THREE.SphereGeometry(1, lo ? 14 : 28, lo ? 10 : 20), palmMat, hand);
   palm.scale.set(0.0125, 0.028, 0.03);
   palm.position.set(0, -0.026, 0);
@@ -559,7 +568,7 @@ function buildHead(head, spec, skinHead, skin, skinDark, r, lo) {
   const sculpt = makeSculpt(spec.face);
   const S = (n) => sculpt(n).multiplyScalar(R);
 
-  const geo = sculptedSphere(S, lo ? 56 : 128, lo ? 42 : 96);
+  const geo = sculptedSphere(S, spec._min ? 36 : lo ? 46 : 128, spec._min ? 26 : lo ? 34 : 96);
   const p = geo.attributes.position;
   const colors = [];
   const base = new THREE.Color(spec.skin), blush = new THREE.Color(spec.blush || 0xd27a62), tmp = new THREE.Color();
@@ -590,7 +599,7 @@ function buildHead(head, spec, skinHead, skin, skinDark, r, lo) {
     head.add(eyeGroup);
     const eyeball = new THREE.Group();
     eyeGroup.add(eyeball);
-    mesh(new THREE.SphereGeometry(re, lo ? 24 : 64, lo ? 18 : 48), eyeMat, eyeball);
+    mesh(new THREE.SphereGeometry(re, spec._min ? 14 : lo ? 24 : 64, spec._min ? 10 : lo ? 18 : 48), eyeMat, eyeball);
     eyes.push(eyeball);
     const cl = mesh(new THREE.SphereGeometry(re * 0.085, 10, 8), white, eyeball, false);
     cl.position.set(re * 0.28, re * 0.3, re * 0.96);
@@ -774,7 +783,7 @@ function buildHair(head, spec, sculpt, r, lo) {
 
   // scalp cap
   {
-    const geo = new THREE.SphereGeometry(1, lo ? 90 : 200, lo ? 64 : 140);
+    const geo = new THREE.SphereGeometry(1, spec._min ? 48 : lo ? 64 : 200, spec._min ? 34 : lo ? 46 : 140);
     const p = geo.attributes.position;
     const keep = [];
     for (let i = 0; i < p.count; i++) {
@@ -798,12 +807,12 @@ function buildHair(head, spec, sculpt, r, lo) {
 
   const counts = { straight: 380, neat: 500, long: 520, pigtails: 460, spiky: 320, curly: 560, baby: 90, buzz: 700 };
   const geos = [];
-  const N = Math.round((counts[style] || 400) * (lo ? 0.42 : 1));
+  const N = Math.round((counts[style] || 400) * (spec._min ? 0.16 : lo ? 0.32 : 1));
   const crown = V(0.12, 0.75, -0.64).normalize();
   const tangentize = (v, n) => v.addScaledVector(n, -v.dot(n)).normalize();
   const addClump = (pts, width, flat, taper, shade, tipLight = 1) => {
     const geo = tube(pts, (t) => width * Math.pow(1 - t, taper) * (t < 0.08 ? 0.75 + t * 3 : 1) + 0.0004,
-      { tubular: lo ? Math.max(8, pts.length) : Math.max(18, pts.length * 2), radial: lo ? 6 : 10, flat, up: (P) => P.clone().normalize() });
+      { tubular: spec._min ? Math.max(5, pts.length - 1) : lo ? Math.max(8, pts.length) : Math.max(18, pts.length * 2), radial: spec._min ? 4 : lo ? 6 : 10, flat, up: (P) => P.clone().normalize() });
     const cnt = geo.attributes.position.count, cols = new Float32Array(cnt * 3);
     for (let i = 0; i < cnt; i++) {
       const l = shade * (1 + (tipLight - 1) * geo.attributes.uv.getY(i));
@@ -882,7 +891,7 @@ function buildHair(head, spec, sculpt, r, lo) {
       lift0 = 0.007 + 0.016 * front * (bigSide ? 1 : 0.3) + 0.002 * r();
       liftAmp = 0.002; width = lerp(0.014, 0.02, r()) * sc; flat = 0.16; taper = 0.45;
     }
-    const K = lo ? 8 : 14;
+    const K = spec._min ? 5 : lo ? 8 : 14;
     const pts = [S(n, 0.99)];
     let cur = n.clone();
     let tau = flow.clone();
@@ -913,7 +922,7 @@ function buildHair(head, spec, sculpt, r, lo) {
     const tieMat = new THREE.MeshStandardMaterial({ color: spec.accent || 0xff5fa2, roughness: 0.4 });
     for (const sd of [-1, 1]) {
       const a = S(V(sd * 0.86, 0.28, -0.3).normalize(), 1.06);
-      for (let k = 0; k < (lo ? 7 : 16); k++) {
+      for (let k = 0; k < (spec._min ? 4 : lo ? 7 : 16); k++) {
         const jit = V((r() - 0.5) * 0.02, (r() - 0.5) * 0.02, (r() - 0.5) * 0.02).multiplyScalar(sc);
         const pts = [a.clone(), a.clone().add(V(sd * 0.05, 0.0, -0.01).multiplyScalar(sc)).add(jit),
           a.clone().add(V(sd * 0.085, -0.06, -0.02).multiplyScalar(sc)).add(jit), a.clone().add(V(sd * 0.09, -0.13 * (spec.pigtailLen || 1), 0).multiplyScalar(sc)).add(jit)];
@@ -1056,3 +1065,78 @@ export const RUMAN = {
   headTilt: [0.02, 0.1, 0.04], pose: 'wave', slippers: [0x2f62c4, 0x2f62c4], card: ['#9fb3c8', '#4f6a88'],
 };
 export const BOYS = Object.fromEntries(KIDS.map(k => [k.id, k]));
+
+
+/**
+ * Merge a character's many little meshes into a few big ones (one per material per moving part),
+ * which makes it MUCH cheaper to draw. The head (and eyeballs / waving hand) stay separate so they can still move.
+ */
+const FLAT_MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6 });
+export function bake(root, { keepEyes = true, flatten = true } = {}) {
+  const head = root.userData.head;
+  const pivots = [head];
+  if (root.userData.waveHand) pivots.push(root.userData.waveHand);
+  if (keepEyes && head) pivots.push(...(head.userData.eyes || []));
+  return bakeTree(root, pivots, { flatten });
+}
+
+/**
+ * Generic version: merge every mesh under `root` into as few meshes as possible. Each object in `pivots` keeps
+ * its own merged meshes (so it can still move, spin or be hidden). Meshes with userData.keep are left alone.
+ */
+export function bakeTree(root, pivotList = [], { flatten = true } = {}) {
+  root.updateMatrixWorld(true);
+  const pivots = new Set([root, ...pivotList.filter(Boolean)]);
+  const buckets = new Map(); // pivot -> Map(material -> [geometry])
+  const doomed = [];
+  root.traverse(o => {
+    if (!o.isMesh || o.isInstancedMesh || o.userData.slipper || o.userData.keep) return;
+    let p = o.parent;
+    while (p && !pivots.has(p)) p = p.parent;
+    if (!p) return;
+    const rel = new THREE.Matrix4().copy(p.matrixWorld).invert().multiply(o.matrixWorld);
+    let g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+    g.applyMatrix4(rel);
+    let mat = o.material;
+    // plain-coloured parts all share one vertex-coloured material: bake the colour into the vertices
+    const glows = mat.emissive && mat.emissive.getHex() !== 0 && mat.emissiveIntensity > 0;
+    if (flatten && !mat.map && !mat.transparent && !glows && !mat.isMeshBasicMaterial) {
+      const c = mat.color.clone();
+      const n = g.attributes.position.count, cols = new Float32Array(n * 3);
+      const src = mat.vertexColors && g.attributes.color ? g.attributes.color : null;
+      for (let i = 0; i < n; i++) {
+        cols[i * 3] = c.r * (src ? src.getX(i) : 1); cols[i * 3 + 1] = c.g * (src ? src.getY(i) : 1); cols[i * 3 + 2] = c.b * (src ? src.getZ(i) : 1);
+      }
+      g.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+      mat = FLAT_MAT;
+    }
+    if (!buckets.has(p)) buckets.set(p, new Map());
+    const m = buckets.get(p);
+    if (!m.has(mat)) m.set(mat, []);
+    m.get(mat).push(g);
+    doomed.push(o);
+  });
+  doomed.forEach(o => { o.parent.remove(o); o.geometry.dispose(); });
+  for (const [pivot, byMat] of buckets) {
+    for (const [mat, geos] of byMat) {
+      const want = ['position', 'normal'];
+      if (geos.some(g => g.attributes.uv)) want.push('uv');
+      if (mat.vertexColors) want.push('color');
+      const clean = geos.map(g => {
+        const n = g.attributes.position.count;
+        const out = new THREE.BufferGeometry();
+        for (const a of want) {
+          if (g.attributes[a]) out.setAttribute(a, g.attributes[a]);
+          else out.setAttribute(a, new THREE.Float32BufferAttribute(new Float32Array(n * (a === 'uv' ? 2 : 3)).fill(a === 'color' ? 1 : 0), a === 'uv' ? 2 : 3));
+        }
+        if (!g.attributes.normal) out.computeVertexNormals();
+        return out;
+      });
+      const merged = mergeGeometries(clean);
+      const mm = new THREE.Mesh(merged, mat);
+      mm.castShadow = true; mm.receiveShadow = true;
+      pivot.add(mm);
+    }
+  }
+  return root;
+}

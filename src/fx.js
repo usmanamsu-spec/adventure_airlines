@@ -1,6 +1,7 @@
 // Fun effects: confetti, rainbow boost trail, sparkles, birds, cars and candies.
 import * as THREE from 'three';
 import { glowTexture } from './world/props.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 export const RAINBOW = [0xff4f6a, 0xff9a3f, 0xffd23f, 0x5fd35a, 0x3fb8ff, 0x8a5cff, 0xff6ad5];
@@ -58,29 +59,48 @@ export class Confetti {
 
 // ---------------------------------------------------------------- rainbow puffs (boost trail, sparkles)
 export class Puffs {
-  constructor(scene, max = 120) {
-    this.sprites = [];
-    for (let i = 0; i < max; i++) {
-      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
-      s.visible = false;
-      s.userData = { life: 0, v: V(), grow: 1 };
-      scene.add(s);
-      this.sprites.push(s);
-    }
+  // all glowing puffs/sparkles/trails are ONE particle system (one draw call)
+  constructor(scene, max = 220) {
+    this.max = max;
+    this.pos = new Float32Array(max * 3);
+    this.col = new Float32Array(max * 3);
+    this.size = new Float32Array(max);
+    this.alpha = new Float32Array(max);
+    this.p = Array.from({ length: max }, () => ({ life: 0, max: 1, v: V(), size: 1, grow: 1, fade: 1 }));
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('color', new THREE.BufferAttribute(this.col, 3).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('size', new THREE.BufferAttribute(this.size, 1).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('alpha', new THREE.BufferAttribute(this.alpha, 1).setUsage(THREE.DynamicDrawUsage));
+    this.geo = g;
+    this.mat = new THREE.ShaderMaterial({
+      uniforms: { map: { value: glowTexture() }, uScale: { value: 600 } },
+      vertexShader: `attribute float size; attribute float alpha; varying vec3 vCol; varying float vA;
+        uniform float uScale;
+        void main() { vCol = color; vA = alpha; vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * uScale / max(0.5, -mv.z); gl_Position = projectionMatrix * mv; }`,
+      fragmentShader: `uniform sampler2D map; varying vec3 vCol; varying float vA;
+        void main() { vec4 t = texture2D(map, gl_PointCoord); gl_FragColor = vec4(vCol * t.rgb, t.a * vA); }`,
+      vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    });
+    this.points = new THREE.Points(g, this.mat);
+    this.points.frustumCulled = false;
+    scene.add(this.points);
     this.i = 0;
     this.hue = 0;
+    this.c = new THREE.Color();
   }
+  /** call when the camera changes: makes point sizes match world units */
+  setScale(camera, heightPx) { this.mat.uniforms.uScale.value = heightPx * 0.5 * camera.projectionMatrix.elements[5]; }
   emit(pos, { color = null, size = 1.6, life = 0.8, v = null, grow = 1.5, fade = 1, light = 0.6, sat = 1 } = {}) {
-    const s = this.sprites[this.i];
-    this.i = (this.i + 1) % this.sprites.length;
-    s.visible = true;
-    s.position.copy(pos);
+    const i = this.i, q = this.p[i];
+    this.i = (this.i + 1) % this.max;
     this.hue = (this.hue + 0.035) % 1;
-    s.material.color.setHSL(color ?? this.hue, sat, light);
-    s.scale.setScalar(size);
-    s.userData.life = life; s.userData.max = life; s.userData.size = size; s.userData.grow = grow;
-    s.userData.v.copy(v || V(0, 0, 0));
-    s.userData.fade = fade;
+    this.c.setHSL(color ?? this.hue, sat, light);
+    this.col[i * 3] = this.c.r; this.col[i * 3 + 1] = this.c.g; this.col[i * 3 + 2] = this.c.b;
+    this.pos[i * 3] = pos.x; this.pos[i * 3 + 1] = pos.y; this.pos[i * 3 + 2] = pos.z;
+    q.life = q.max = life; q.size = size; q.grow = grow; q.fade = fade;
+    q.v.copy(v || V(0, 0, 0));
   }
   sparkle(pos, n = 12, radius = 3) {
     for (let k = 0; k < n; k++) {
@@ -89,17 +109,84 @@ export class Puffs {
     }
   }
   update(dt) {
-    for (const s of this.sprites) {
-      if (!s.visible) continue;
-      const u = s.userData;
-      u.life -= dt;
-      if (u.life <= 0) { s.visible = false; continue; }
-      s.position.addScaledVector(u.v, dt);
-      const k = u.life / u.max;
-      s.material.opacity = k * (u.fade ?? 1);
-      s.scale.setScalar(u.size * (1 + (1 - k) * u.grow));
+    for (let i = 0; i < this.max; i++) {
+      const q = this.p[i];
+      if (q.life <= 0) { this.alpha[i] = 0; this.size[i] = 0; continue; }
+      q.life -= dt;
+      this.pos[i * 3] += q.v.x * dt; this.pos[i * 3 + 1] += q.v.y * dt; this.pos[i * 3 + 2] += q.v.z * dt;
+      const k = Math.max(0, q.life / q.max);
+      this.alpha[i] = k * q.fade;
+      this.size[i] = q.size * (1 + (1 - k) * q.grow);
     }
+    for (const a of ['position', 'color', 'size', 'alpha']) this.geo.attributes[a].needsUpdate = true;
   }
+}
+
+/**
+ * Many copies of one small object drawn in a single call. Items act like light Object3Ds
+ * ({ position, rotation, scale, visible, userData }); call sync() once per frame.
+ */
+export class InstancedPool {
+  constructor(scene, parts, count) {
+    this.items = Array.from({ length: count }, () => ({ position: V(), rotation: new THREE.Euler(), scale: 1, visible: true, userData: {} }));
+    this.meshes = parts.map(({ geo, mat }) => {
+      const m = new THREE.InstancedMesh(geo, mat, Math.max(1, count));
+      m.count = count;
+      m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      m.frustumCulled = false;
+      m.castShadow = false;
+      scene.add(m);
+      return m;
+    });
+    this.m = new THREE.Matrix4(); this.q = new THREE.Quaternion(); this.s = V();
+  }
+  setColor(i, color, part = 0) { this.meshes[part].setColorAt(i, new THREE.Color(color)); this.meshes[part].instanceColor.needsUpdate = true; }
+  sync() {
+    this.items.forEach((it, i) => {
+      this.m.compose(it.position, this.q.setFromEuler(it.rotation), this.s.setScalar(it.visible ? it.scale : 0));
+      for (const mesh of this.meshes) mesh.setMatrixAt(i, this.m);
+    });
+    for (const mesh of this.meshes) mesh.instanceMatrix.needsUpdate = true;
+  }
+}
+
+const merge = (list) => {
+  const geos = list.map(([g, m4, color]) => {
+    const c = g.index ? g.toNonIndexed() : g.clone();
+    c.applyMatrix4(m4);
+    c.deleteAttribute('uv');
+    if (color !== undefined) {
+      const col = new THREE.Color(color), n = c.attributes.position.count, a = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) { a[i * 3] = col.r; a[i * 3 + 1] = col.g; a[i * 3 + 2] = col.b; }
+      c.setAttribute('color', new THREE.BufferAttribute(a, 3));
+    }
+    return c;
+  });
+  return mergeGeometries(geos);
+};
+const M4 = (x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, s = 1) => new THREE.Matrix4().compose(V(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), V(s, s, s));
+
+/** all the candies in a mission as two instanced meshes (wrapper + white band) */
+export function candyPool(scene, count) {
+  const body = merge([[new THREE.SphereGeometry(0.9, 12, 8).scale(1.25, 1, 1), M4()], [new THREE.ConeGeometry(0.6, 0.9, 8), M4(1.45, 0, 0, 0, 0, Math.PI / 2)], [new THREE.ConeGeometry(0.6, 0.9, 8), M4(-1.45, 0, 0, 0, 0, -Math.PI / 2)]]);
+  const band = merge([[new THREE.TorusGeometry(0.88, 0.14, 6, 16), M4(0, 0, 0, 0, Math.PI / 2, 0)]]);
+  body.scale(1.15, 1.15, 1.15); band.scale(1.15, 1.15, 1.15);
+  const pool = new InstancedPool(scene, [
+    { geo: body, mat: new THREE.MeshStandardMaterial({ roughness: 0.25, metalness: 0.1, emissive: 0x444444 }) },
+    { geo: band, mat: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }) },
+  ], count);
+  for (let i = 0; i < count; i++) pool.setColor(i, RAINBOW[i % RAINBOW.length]);
+  return pool;
+}
+
+/** all the juice boxes in a mission as one instanced mesh */
+export function juicePool(scene, count) {
+  const geo = merge([
+    [new THREE.BoxGeometry(1.4, 2, 0.9), M4(), 0x45b649],
+    [new THREE.BoxGeometry(1.42, 0.9, 0.92), M4(), 0xffd23f],
+    [new THREE.CylinderGeometry(0.07, 0.07, 1.2, 6), M4(0.35, 1.3, 0, 0, 0, -0.3), 0xff5fa2],
+  ]);
+  return new InstancedPool(scene, [{ geo, mat: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.4, emissive: 0x112211 }) }], count);
 }
 
 // ---------------------------------------------------------------- birds

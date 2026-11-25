@@ -1,0 +1,13 @@
+<!DOCTYPE html><html><body><script type="module">
+import * as THREE from 'three';
+import { makeBoy, KIDS } from '/src/characters.js';
+const b = makeBoy(KIDS[0], { lod: new URLSearchParams(location.search).get('lod') || 'min', arms: { R: 'relaxed', L: 'relaxed' }, legs: 'sit' });
+const parts = {};
+let meshes = 0, tris = 0;
+b.traverse(o => { if (!o.isMesh) return; meshes++; const g = o.geometry; const t = (g.index ? g.index.count : g.attributes.position.count) / 3; tris += t;
+  let p = o, tag = 'body'; while (p) { if (p === b.userData.head) { tag = 'head'; break; } p = p.parent; }
+  const key = tag + ':' + (o.material.vertexColors ? 'vc' : '') + (o.material.map ? 'map' : '') + o.geometry.type;
+  parts[key] = parts[key] || [0, 0]; parts[key][0]++; parts[key][1] += t; });
+window.__times = { meshes, tris: Math.round(tris), parts: Object.fromEntries(Object.entries(parts).sort((a, b) => b[1][1] - a[1][1]).slice(0, 12)) };
+window.__ready = true;
+</script></body></html>

@@ -1,6 +1,7 @@
 // The Backyard Squadron plane: a refrigerator box with pool-noodle wings and a box-fan propeller.
 import * as THREE from 'three';
 import { rng } from './util.js';
+import { bakeTree } from './characters.js';
 
 export const PAINTS = {
   cardboard: { name: 'Classic Cardboard', color: 0xc89a5c, cost: 0 },
@@ -241,12 +242,14 @@ export function buildPlane({ upgrades = {}, paint = 'cardboard' } = {}) {
   // --- Christmas lights along the box rim ---
   const bulbs = [];
   const bulbColors = [0xff3b3b, 0x3bff6a, 0x3bb8ff, 0xffd23b, 0xff6af0];
+  const bulbMats = {};
   let k = 0;
   for (const s of [-1, 1]) {
     for (let i = 0; i < 15; i++) {
       const z = -L / 2 + 0.15 + i * (L - 0.3) / 14;
       const c = bulbColors[k++ % bulbColors.length];
-      const b = add(body, new THREE.SphereGeometry(0.035, 8, 6), new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.6 }), s * (W / 2 + 0.03), H + 0.01, z);
+      bulbMats[c] = bulbMats[c] || new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.6 });
+      const b = add(body, new THREE.SphereGeometry(0.035, 8, 6), bulbMats[c], s * (W / 2 + 0.03), H + 0.01, z);
       b.castShadow = false;
       bulbs.push(b);
     }
@@ -258,7 +261,7 @@ export function buildPlane({ upgrades = {}, paint = 'cardboard' } = {}) {
   spot.target.position.set(0.3, -3, 20);
   body.add(spot, spot.target);
 
-  let t = 0;
+  let t = 0, night = false;
   const api = {
     group, body, seats, seatOrder, propeller: prop, spot, kind: 'plane',
     tips: [new THREE.Vector3(4.1, 0.76, 0.3), new THREE.Vector3(-4.1, 0.76, 0.3)],
@@ -272,16 +275,18 @@ export function buildPlane({ upgrades = {}, paint = 'cardboard' } = {}) {
     setNight(on) {
       spot.intensity = on ? 60 : 0;
       lampGlass.material.emissiveIntensity = on ? 3 : 0.3;
-      bulbs.forEach(b => (b.material.emissiveIntensity = on ? 2.5 : 0.6));
+      night = on;
     },
     update(dt, speed, boosting) {
       t += dt;
       prop.rotation.z += dt * (8 + speed * 1.6) * (boosting ? 1.6 : 1);
-      bulbs.forEach((b, i) => (b.scale.setScalar(1 + 0.25 * Math.sin(t * 6 + i))));
+      Object.values(bulbMats).forEach((m, i) => (m.emissiveIntensity = (night ? 2.5 : 0.6) * (0.7 + 0.3 * Math.sin(t * 6 + i * 1.3)))); // twinkle
       puff.visible = boosting && blower.visible;
       body.position.y = Math.sin(t * 9) * 0.015 * Math.min(1, speed / 10);
     },
   };
+  // merge ~150 little parts into a few meshes (much faster to draw); moving / switchable parts stay separate
+  bakeTree(group, [body, prop, noodles, umbrella, blower, floats, puff]);
   api.setUpgrades(upgrades);
   return api;
 }
