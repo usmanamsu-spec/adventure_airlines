@@ -61,7 +61,7 @@ export class Flight {
 export class Input {
   constructor(settings) {
     this.settings = settings;
-    this.roll = 0; this.pitch = 0; this.boost = false; this.trick = false; this.touchTrick = false;
+    this.roll = 0; this.pitch = 0; this.boost = false; this.trick = false; this.touchTrick = false; this.honk = false; this.touchHonk = false;
     this.keys = new Set();
     this.joy = { x: 0, y: 0, active: false };
     this.touchBoost = false;
@@ -146,6 +146,8 @@ export class Input {
     // gamepad
     let trick = this.touchTrick || k.has('KeyE') || k.has('KeyQ');
     this.touchTrick = false;
+    let honk = this.touchHonk || k.has('KeyH');
+    this.touchHonk = false;
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];
     for (const gp of pads) {
       if (!gp) continue;
@@ -154,6 +156,7 @@ export class Input {
       if (Math.abs(ay) > 0.15) pitch -= ay;
       if (gp.buttons[0]?.pressed || gp.buttons[7]?.pressed || gp.buttons[5]?.pressed) boost = true;
       if (gp.buttons[1]?.pressed || gp.buttons[2]?.pressed) trick = true;
+      if (gp.buttons[3]?.pressed) honk = true;
     }
     const sens = S.sensitivity ?? 1;
     if (S.controls === 'touch' && this.joy.active) {
@@ -174,6 +177,11 @@ export class Input {
     this.pitch = clamp(pitch, -1, 1);
     this.boost = boost;
     this.trick = trick;
+    this.honk = honk;
+  }
+
+  bindHonk(el) {
+    el.addEventListener('pointerdown', (e) => { this.touchHonk = true; el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 220); e.preventDefault(); });
   }
 
   bindTrick(el) {

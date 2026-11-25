@@ -326,3 +326,15 @@ html, body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .pc-stars { font-size: clamp(11px, 2.2vw, 14px); }
 .logo-top, .logo-bottom { font-size: clamp(38px, 11vw, 96px); }
 .who-q { margin-top: auto; }
+
+/* ---------- honk button ---------- */
+.honk { position: absolute; left: calc(40px + var(--safe-l)); bottom: calc(250px + var(--safe-b)); width: 84px; height: 84px; border-radius: 50%; border: 5px solid #fff;
+  background: radial-gradient(circle at 40% 35%, #fff07a, #f2a930); color: #fff; font-weight: 900; line-height: 1; pointer-events: auto;
+  box-shadow: 0 6px 0 rgba(0,0,0,.3); display: flex; flex-direction: column; align-items: center; justify-content: center; text-shadow: 0 2px 0 rgba(0,0,0,.35); }
+.honk b { font-size: 30px; }
+.honk span { font-size: 13px; margin-top: 2px; }
+.honk.on { transform: scale(.88); }
+.honk.truck { background: linear-gradient(145deg, #f4f6f8, #a9afb6 55%, #7d848c); border-color: #2a2d31; color: #1d1d24; text-shadow: none; border-radius: 22px; }
+#hud.touch-mode .honk { bottom: calc(240px + var(--safe-b)); }
+#hud, #hud button, .honk { touch-action: none; }
+@media (max-width: 500px) { .honk { width: 64px; height: 64px; bottom: calc(190px + var(--safe-b)); left: calc(24px + var(--safe-l)); } .honk b { font-size: 22px; } .honk span { font-size: 10px; } }

@@ -28,6 +28,7 @@ No sound? Turn the volume up. The game unlocks sound on the first tap and also p
 | Climb / dive | Stick up / down | Tip the iPad toward / away from you | ↑ ↓ / W S |
 | Boost | **BOOST** button | **BOOST** button | Space / A button |
 | Barrel roll | **🌀 TRICK** button | **🌀 TRICK** button | E / B button |
+| Honk! | **📯 HONK** button (🛻 truck horn for Faris) | **📯 HONK** button | H / Y button |
 | Recenter tilt | | 🎯 button | |
 
 Every mission has 3 stars: **finish it**, **collect enough candy 🍬**, and make a **Butter landing 🧈** in the green strip. Grab things quickly for **combos 🔥** and tap **🌀 TRICK** (E key / B button) for barrel rolls and bonus points.

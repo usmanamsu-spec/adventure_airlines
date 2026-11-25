@@ -74,6 +74,7 @@ export class MissionRun {
     this.plane = plane;
     this.scene.add(plane.group);
     // the whole squad flies together: the chosen kid is the pilot, everyone else has a seat
+    this.app.hud.setVehicle(plane.kind);
     this.pilotModel = this.app.getBoy(this.player, 'drive');
     this.seat(this.pilotModel, plane.seats.pilot);
     this.crew = crewSeating(this.player);
@@ -414,7 +415,7 @@ export class MissionRun {
     if (this.flight.juice < 0.12 && this.t - (this._juiceLowT || -99) > 30) { this._juiceLowT = this.t; this.chat('juiceLow', { priority: 0 }); }
     const F = this.flight;
     const easy = !this.autopilot && this.settings.easy !== false;
-    let input = this.autopilot ? this.autoInput() : this.app.input;
+    let input = this.autopilot ? { ...this.autoInput(), honk: this.app.input.honk, trick: this.app.input.trick } : this.app.input;
     if (easy) input = this.easyInput(input, dt);
     const opt = { cruise: this.spec.cruise || 1, turn: this.profile.upgrades.wings ? 1.7 : 1.35, maxRoll: (this.profile.upgrades.wings ? 58 : 50) * DEG, tank: this.profile.upgrades.blower, free: this.freeBoost > 0 };
     this.freeBoost = Math.max(0, this.freeBoost - dt);
@@ -463,6 +464,8 @@ export class MissionRun {
     this.avoidObstacles(dt, easy || this.autopilot);
     // barrel roll trick!
     if (input.trick && this.trickCool <= 0 && F.pos.y - this.groundAt(F.pos) > 6) this.doTrick();
+    this.honkCool = Math.max(0, (this.honkCool || 0) - dt);
+    if (input.honk && this.honkCool <= 0) this.honk();
     if (this.trickT > 0) this.trickT = Math.max(0, this.trickT - dt);
 
     // world limits
@@ -850,6 +853,22 @@ export class MissionRun {
   addScore(n, label) {
     this.score += n;
     this.app.hud.popScore(`+${n}${label ? ' ' + label : ''}`);
+  }
+
+  honk() {
+    const truck = this.plane.kind === 'truck';
+    this.honkCool = truck ? 0.6 : 0.45;
+    if (truck) this.app.sound.honkTruck(); else this.app.sound.honkPlane();
+    this.app.hud.comic(truck ? 'HOOONK!' : 'HONK HONK!');
+    // a ring of sound puffs from the front
+    const nose = this.plane.group.localToWorld(V(0, 1, truck ? 3.6 : 3.2));
+    for (let k = 0; k < 10; k++) {
+      const a = k / 10 * Math.PI * 2, d = V(Math.cos(a), Math.sin(a), 0).applyQuaternion(this.plane.group.quaternion);
+      this.puffs.emit(nose, { color: truck ? 0.55 : 0.13, size: 0.8, life: 0.45, v: d.multiplyScalar(9), grow: 0.6, light: 0.75 });
+    }
+    this.cheerT = Math.max(this.cheerT, 0.6);
+    this.honks = (this.honks || 0) + 1;
+    if (this.honks === 1 || Math.random() < 0.45) this.chat(truck ? 'honkTruck' : 'honk', { priority: 0 });
   }
 
   doTrick() {

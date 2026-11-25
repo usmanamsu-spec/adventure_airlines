@@ -95,6 +95,29 @@ export class Sound {
   boing() { this.tone(300, 0.3, { vol: 0.3, type: 'sine', slide: 2.2 }); }
   pop() { this.noise(0.35, { vol: 0.3, freq: 900, q: 0.4 }); this.tone(1200 + Math.random() * 800, 0.2, { vol: 0.08, type: 'triangle', slide: 0.5 }); }
   whoosh() { this.noise(0.4, { vol: 0.18, freq: 2000, q: 0.8 }); }
+  /** cardboard plane: a goofy rubber bike horn, honk-honk! */
+  honkPlane() {
+    if (!this.ok) return;
+    for (const at of [0, 0.2]) {
+      this.tone(420, 0.16, { at, vol: 0.32, type: 'sawtooth', slide: 0.82 });
+      this.tone(630, 0.16, { at, vol: 0.14, type: 'square', slide: 0.85 });
+      this.noise(0.12, { at, vol: 0.12, freq: 900, q: 2 });
+    }
+  }
+  /** Faris's truck: a big, deep, two-tone car horn */
+  honkTruck() {
+    if (!this.ok) return;
+    const c = this.ctx, t = c.currentTime, dur = 0.55;
+    const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1800; f.Q.value = 3;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.34, t + 0.02);
+    g.gain.setValueAtTime(0.34, t + dur - 0.06); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    f.connect(g); g.connect(this.sfxBus);
+    for (const [freq, type] of [[349, 'sawtooth'], [440, 'sawtooth'], [174.5, 'square']]) { // F + A, with a low rumble
+      const o = c.createOscillator(); o.type = type; o.frequency.value = freq;
+      o.connect(f); o.start(t); o.stop(t + dur + 0.05);
+    }
+  }
   click() { this.tone(900, 0.05, { vol: 0.15, type: 'square' }); }
   countdown(go) { this.tone(go ? 1047 : 523, go ? 0.4 : 0.15, { vol: 0.25, type: 'square' }); }
   fanfare() { [523, 659, 784, 1047, 784, 1047].forEach((f, i) => this.tone(f, 0.35, { at: i * 0.13, vol: 0.22, type: 'triangle' })); }

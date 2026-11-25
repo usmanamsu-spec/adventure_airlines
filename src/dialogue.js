@@ -275,6 +275,23 @@ export const SCRIPTS = {
     [["faris|harun", "My cheeks are flapping!"]], [["yusuf|musa", "Juice-box POWER!"]],
   ],
 
+  honk: [
+    [["five", "HONK HONK! Do it again!"], ["anaya|yusuf", "Please don't do it again."]],
+    [["little", Z("Honk! Honk!", "Onk!")]],
+    [["faris|harun", "The plane has a HORN?!"], ["yusuf|musa", "It's a bike horn. I taped it on."]],
+    [["anaya|musa", "Who are you honking at? We're in the SKY."], ["five", "The birds!"]],
+    [["zainab|babymusa", Z("Again! Again!", "Hehe! Onk!")], ["anaya|yusuf", "Great. Now they'll want it the whole trip."]],
+    [["ayra|harun", "Honk at the clouds!"], ["any", "Hi, clouds!"]],
+    [["anaya|yusuf", "That horn is SO loud."], ["yusuf|musa", "That's the best part!"]],
+  ],
+  honkTruck: [
+    [["five", "WHOA! The truck horn is SO LOUD!"], ["anaya|yusuf", "My ears!"]],
+    [["little", Z("Beep beep!", "Bee!")]],
+    [["yusuf|musa", "That's a real truck horn!"], ["anaya|musa", "Faris, stop honking at the birds."]],
+    [["ayra|harun", "Honk again, Faris! HONK AGAIN!"], ["anaya|yusuf", "Do NOT honk again."]],
+    [["zainab|babymusa", Z("Twuck honk!", "Onk!")], ["ruman", "Ruman here. Was that you? I heard that all the way in Greensboro."]],
+  ],
+
   // extra chatter when Faris is driving the flying truck
   truckBanter: [
     [["ayra|harun", "The truck is so shiny I can see my face in it!"], ["little", Z("Me! Me in truck!", "Ba!")]],

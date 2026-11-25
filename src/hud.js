@@ -23,6 +23,7 @@ export class Hud {
       <div class="joystick hidden"><div class="knob"></div></div>
       <button class="boost">BOOST</button>
       <button class="trick">🌀<span>TRICK</span></button>
+      <button class="honk"><b>📯</b><span>HONK</span></button>
       <div class="pops"></div>
       <div class="combo hidden"></div>
       <div class="landmeter hidden"><div class="lm-title">Landing</div><div class="lm-bar"><div class="lm-dot"></div></div><div class="lm-text">Gentle!</div></div>
@@ -46,6 +47,7 @@ export class Hud {
     this.q('.recenter').addEventListener('pointerup', () => { app.input.recenter(); this.banner('Tilt recentered', 'ok', 900); });
     app.input.bindTouch(this.joy, this.knob, this.boostBtn);
     app.input.bindTrick(this.q('.trick'));
+    app.input.bindHonk(this.q('.honk'));
     this.cache = {};
     this.hide();
   }
@@ -113,6 +115,11 @@ export class Hud {
     b.classList.add('show');
     clearTimeout(this.banT);
     this.banT = setTimeout(() => b.classList.add('hidden'), ms);
+  }
+  setVehicle(kind) {
+    const b = this.q('.honk');
+    b.classList.toggle('truck', kind === 'truck');
+    b.querySelector('b').textContent = kind === 'truck' ? '🛻' : '📯';
   }
   speedLines(on) { this.set('sl', on, v => this.q('.speedlines').classList.toggle('on', v)); }
   flash() { const f = this.q('.flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); }
