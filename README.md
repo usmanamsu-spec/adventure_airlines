@@ -34,7 +34,7 @@ Every mission has 3 stars: **finish it**, **collect enough candy 🍬**, and mak
 
 The game helps kids out: big rainbow rings, gentle aim-assist toward the next target, a candy magnet, a ground cushion, 6 rolls of duct tape, and a **Landing helper** that's on by default.
 
-**Easy flying** (on by default, in ⚙️ Settings) makes it even simpler: the plane keeps its own height, so you only steer left and right. It hops over buildings and trees, drifts toward the next goal when you stop steering, and **lands itself if you let go of the stick**. Turn it off for more of a challenge.
+**Easy flying** (on by default, in ⚙️ Settings) makes it really simple: **let go of the stick and the plane flies to the next ring by itself**; light steering gets a helping hand; height is automatic; it hops over buildings and trees; **bumps don't cause damage**; rings count even if you just fly close by; targets and the candy magnet are bigger; fewer candies are needed for the candy star; and **landing is fully automatic**. Turn it off for more of a challenge.
 
  Stars buy plane upgrades in the **Garage**: umbrella wings for tighter turns, a leaf-blower engine for a bigger boost tank, and flamingo floats for landing on water. The **Landing helper** setting makes landings easier.
 
@@ -101,4 +101,5 @@ node tests/flow.mjs  http://localhost:4173     # menus → mission → results �
 node tests/screens.mjs http://localhost:4173   # screenshots into tests/out/
 node tests/easy.mjs http://localhost:4173      # Easy flying with nobody touching the controls
 node tests/zoom.mjs http://localhost:4173      # pinch / double-tap zoom is blocked, two-thumb controls still work
+node tests/clumsy.mjs http://localhost:4173    # a 'clumsy kid' wiggles the stick randomly; every mission still finishes
 ```

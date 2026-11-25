@@ -63,7 +63,9 @@ export class MissionRun {
     this.spec = def.build(world, { player: this.player, upgrades: this.profile.upgrades });
     world.finish();
     const S = this.spec;
-    this.noDamage = !!S.noDamage;
+    // Easy flying (on by default): no damage, bigger targets, the plane steers itself and lands itself
+    this.easy = this.settings.easy !== false;
+    this.noDamage = !!S.noDamage || this.easy;
 
     // plane + crew
     // when Faris flies, the cardboard plane becomes his shiny flying truck
@@ -448,9 +450,10 @@ export class MissionRun {
       if (T) {
         const dx = T.x - F.pos.x, dz = T.z - F.pos.z, dist = Math.hypot(dx, dz);
         const e = wrapAngle(Math.atan2(dx, dz) - F.h);
-        if (dist < 120 && Math.abs(e) < 0.75) {
-          F.h += clamp(e, -0.5, 0.5) * dt * 1.2;
-          F.pos.y += clamp(T.y - F.pos.y, -8, 8) * dt * (dist < 60 ? 0.6 : 0.3);
+        const reach = this.easy ? 170 : 120, cone = this.easy ? 1.3 : 0.75, pull = this.easy ? 2.2 : 1.2;
+        if (dist < reach && Math.abs(e) < cone) {
+          F.h += clamp(e, -0.6, 0.6) * dt * pull;
+          F.pos.y += clamp(T.y - F.pos.y, -8, 8) * dt * (dist < 60 ? (this.easy ? 1.2 : 0.6) : 0.3);
         }
       }
       // ground cushion: the plane politely refuses to fly into the ground
@@ -567,13 +570,13 @@ export class MissionRun {
     const F = this.flight;
     const Z = this.zone;
     if (this.phase === 'land' && zl) {
-      const inZone = Math.abs(zl.x) < Z.wid / 2 + 7 && Math.abs(zl.z) < Z.len / 2 + 12;
+      const inZone = this.easy ? Math.abs(zl.x) < Z.wid / 2 + 22 && Math.abs(zl.z) < Z.len / 2 + 45 : Math.abs(zl.x) < Z.wid / 2 + 7 && Math.abs(zl.z) < Z.len / 2 + 12;
       const okSurface = Z.water ? (water && this.profile.upgrades.floats) : !water;
       if (inZone && okSurface) {
         const vs = F.vy;
-        const rollOk = Math.abs(F.r) < 45 * DEG;
-        if (vs > -5 && rollOk) {
-          const grade = vs > -2.2 ? 'butter' : vs > -3.4 ? 'bumpy' : 'pancake';
+        const rollOk = this.easy || Math.abs(F.r) < 45 * DEG;
+        if ((this.easy ? vs > -9 : vs > -5) && rollOk) {
+          const grade = this.easy ? (vs > -3.6 ? 'butter' : 'bumpy') : vs > -2.2 ? 'butter' : vs > -3.4 ? 'bumpy' : 'pancake';
           this.land(grade);
           return;
         }
@@ -679,7 +682,11 @@ export class MissionRun {
         if (active) { const s = 1 + Math.sin(this.t * 6) * 0.06; g.userData.torus.scale.setScalar(s); }
       });
       const g = o.meshes[i];
-      if (g && this.passedThrough(g.userData.c, g.userData.r + 1.2)) {
+      const closeMiss = this.easy && g && (() => { // flew right past it? close enough!
+        const d = g.userData.c.clone().sub(F.pos), fwd = F.forward();
+        return d.dot(fwd) < -2 && Math.hypot(d.x, d.z) < 40 && Math.abs(d.y) < 30;
+      })();
+      if (g && (this.passedThrough(g.userData.c, g.userData.r + (this.easy ? 8 : 1.2)) || closeMiss)) {
         o.count++;
         this.app.sound.ring();
         this.checkpoint = { p: g.userData.c.clone(), h: F.h };
@@ -699,7 +706,7 @@ export class MissionRun {
     } else if (o.type === 'collect') {
       for (const it of o.items) {
         if (it.got) continue;
-        if (it.m.position.distanceTo(F.pos) < o.r) {
+        if (it.m.position.distanceTo(F.pos) < o.r + (this.easy ? 5 : 0)) {
           it.got = true;
           it.m.visible = false;
           o.count++;
@@ -715,7 +722,7 @@ export class MissionRun {
       o.cool = Math.max(0, o.cool - dt);
       const tp = o.target.position;
       const alt = F.pos.y - this.groundAt(F.pos);
-      if (o.cool <= 0 && Math.hypot(tp.x - F.pos.x, tp.z - F.pos.z) < o.r && alt < o.maxAlt) {
+      if (o.cool <= 0 && Math.hypot(tp.x - F.pos.x, tp.z - F.pos.z) < o.r * (this.easy ? 1.6 : 1) && alt < o.maxAlt * (this.easy ? 1.5 : 1)) {
         o.count++;
         o.cool = 2.5;
         o.onTag && o.onTag();
@@ -807,7 +814,7 @@ export class MissionRun {
     });
     const chase = S.objectives.some(o => o.type === 'chase');
     const ratio = S.candyRatio || (chase ? 0.25 : this._clusters ? this._clusterFactor * 0.7 : 0.6);
-    this.candyNeed = Math.max(1, Math.ceil(this.candies.length * ratio));
+    this.candyNeed = Math.max(1, Math.ceil(this.candies.length * ratio * (this.settings.easy !== false ? 0.7 : 1)));
   }
 
   updateCandies(dt) {
@@ -815,8 +822,9 @@ export class MissionRun {
     for (const c of this.candies) {
       if (!c.visible) continue;
       const d = c.position.distanceTo(F.pos);
-      if (d < 13) c.position.lerp(F.pos, Math.min(1, dt * 7 * (13 - d) / 6)); // candy magnet
-      if (d < 4.5) {
+      const mag = this.easy ? 22 : 13;
+      if (d < mag) c.position.lerp(F.pos, Math.min(1, dt * 7 * (mag - d) / 6)); // candy magnet
+      if (d < (this.easy ? 6 : 4.5)) {
         c.visible = false;
         this.candiesGot++;
         this.puffs.sparkle(c.position, 8, 2);
@@ -863,9 +871,11 @@ export class MissionRun {
     // height is automatic unless the kid pushes up or down
     if (Math.abs(inp.pitch) < 0.25) out.pitch = ai.pitch;
     // landing: let go of the stick and the plane lands itself
-    if (this.phase === 'land' && this.idleT > 0.6) out.roll = ai.roll;
-    // flying: after a moment with no steering, drift toward the next target
-    else if (this.phase === 'fly' && this.idleT > 1.2) out.roll = ai.roll * 0.7;
+    if (this.phase === 'land') { out.roll = ai.roll; out.pitch = ai.pitch; out.boost = false; } // landing is fully automatic
+    // flying: let go of the stick and the plane flies to the next target by itself
+    else if (this.phase === 'fly' && this.idleT > 0.3) out.roll = ai.roll * Math.min(1, (this.idleT - 0.3) * 2);
+    // light steering gets a helping hand toward the target too
+    else if (this.phase === 'fly' && Math.abs(inp.roll) < 0.6) out.roll = clamp(inp.roll + ai.roll * 0.35, -1, 1);
     if (this.phase === 'land' && !this.landTipT) { this.landTipT = 1; this.chat('autoland', { priority: 1 }); }
     return out;
   }

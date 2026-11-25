@@ -77,7 +77,7 @@ export const SCRIPTS = {
     [["faris|zainab", { faris: "There's our house! Hi, house!", zainab: "House! Hi!", default: "There's the house!" }], ["anaya|yusuf", "Wave at the house later. Fly now."]],
   ],
   'intro.land': [
-    [["anaya|yusuf|musa", "Land on Sunny Lane. Let go of the stick and it lands itself."], ["little", Z("Bye-bye sky!", "Bye-bye!")]],
+    [["anaya|yusuf|musa", "Landing time! The plane lands itself on Sunny Lane."], ["little", Z("Bye-bye sky!", "Bye-bye!")]],
     [["yusuf|anaya", "Our street! Bring it down nice and slow, {pilot}."], ["ruman", "Ruman here. Did you land yet? I'm bored."]],
   ],
 
@@ -199,7 +199,7 @@ export const SCRIPTS = {
     [["ayra|harun", "I can see Ruman waving!"], ["yusuf|faris", "Hi, Ruman!"], ["little", Z("Hi! Hi!", "Hi!")], ["anaya|musa", "Wave AFTER we land."]],
   ],
   'trip.land': [
-    [["anaya|musa", "Land on the street by the blue house. Let go of the stick if you want it to land itself."], ["little", Z("Bye-bye sky!", "Bye-bye!")]],
+    [["anaya|musa", "Landing time! The plane lands itself by the blue house."], ["little", Z("Bye-bye sky!", "Bye-bye!")]],
     [["ruman", "Ruman here. Landing zone is clear. Bring it in, Captain {pilot}!"], ["anaya|yusuf", "Easy does it..."]],
   ],
 
@@ -249,8 +249,8 @@ export const SCRIPTS = {
     [["faris|harun", "That was AWESOME!"], ["anaya|yusuf", "That was NOT awesome."], ["yusuf|musa", "Okay, it was a little awesome."]],
   ],
   autoland: [
-    [["anaya|yusuf", "Let go of the stick and the plane will land itself. Hands off, {pilot}!"]],
-    [["musa|yusuf", "Landing time! Let go of the stick and the plane lands by itself."]],
+    [["anaya|yusuf", "Landing time! The plane lands itself. Everybody hold on!"]],
+    [["musa|yusuf", "Auto-landing! Here we go!"], ["little", Z("Down! Down!", "Ba!")]],
   ],
   lawndart: [[["anaya|musa", "Too steep! Come in nice and slow!"]], [["yusuf|musa", "Whoa! Pull up and try again, gently!"]]],
   landedButter: [

@@ -84,7 +84,7 @@ export class Hud {
   }
   setTape(n, max, infinite) {
     this.set('tape', infinite ? 'inf' : `${n}/${max}`, () => {
-      this.rolls.innerHTML = infinite ? '<span class="inf">∞ No damage on this trip!</span>' : Array.from({ length: max }, (_, i) => `<span class="roll ${i < n ? '' : 'gone'}"></span>`).join('');
+      this.rolls.innerHTML = infinite ? '<span class="inf">∞ Easy flying: no damage!</span>' : Array.from({ length: max }, (_, i) => `<span class="roll ${i < n ? '' : 'gone'}"></span>`).join('');
     });
   }
   setJuice(f) { this.set('j', Math.round(f * 50), () => { this.fill.style.width = `${Math.round(f * 100)}%`; this.fill.classList.toggle('low', f < 0.2); }); }
