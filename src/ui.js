@@ -3,10 +3,9 @@ import { MISSIONS } from './levels.js';
 import { PAINTS, UPGRADES } from './plane.js';
 import { store, totalStars, availableStars, socksFound, isUnlocked, buyUpgrade, buyPaint } from './save.js';
 
-import { NAMES, AGES } from './dialogue.js';
+import { NAMES } from './dialogue.js';
 import { KIDS } from './characters.js';
 
-const AGE_LABEL = (id) => (AGES[id] === 1 ? '1 year old' : `${AGES[id]} years old`);
 const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
 export class UI {
@@ -35,7 +34,6 @@ export class UI {
         <button class="pilot-card" data-who="${k.id}" style="--c1:${k.card[0]};--c2:${k.card[1]}">
           <img src="${P[k.id]}" alt="${NAMES[k.id]}">
           <div class="pc-name">${NAMES[k.id]}</div>
-          <div class="pc-home">${AGE_LABEL(k.id)}</div>
           <div class="pc-stars">⭐ ${totalStars(store.profile(k.id))}</div>
         </button>`).join('')}
       </div>
