@@ -97,6 +97,23 @@ export const SCRIPTS = {
     [["musa|hassan", "We're flying to Greensboro... on a chicken tender."], ["yusuf|faris", "Extra crispy!"], ["five", "With dipping sauce rockets!"], ["little", { zainab: "Sauce!", babymusa: "Ba!", default: "Sauce!" }]],
     [["ruman", "Ruman here. Anaya, are you seriously flying a chicken tender all the way here?"], ["yusuf|musa", "She says it's the best food AND the best plane."], ["ruman", "...Save me a piece."]],
   ],
+  'intro.introLego': [
+    [["musa|hassan", "Yusuf, did you build the WHOLE plane out of bricks?!"], ["faris|anaya", "He was in the garage ALL night."], ["five", "It's like a giant toy!"], ["little", { zainab: "Bricks! Bricks!", babymusa: "Ba!", default: "Bricks!" }],
+      ["anaya|musa", "Nobody pull any pieces off. I mean it."]],
+    [["ruman", "Ruman here. Is that a plane made of... toy bricks?"], ["anaya|musa", "Yusuf built it. Every single piece."], ["ruman", "Respect."]],
+    [["ayra|harun", "Can I add a brick? Pleeease?"], ["anaya|musa", "Not while we're flying!"], ["zainab|babymusa", { zainab: "Me brick!", babymusa: "Ba!" }]],
+  ],
+  'trip.introLego': [
+    [["musa|hassan", "All the way to Greensboro in a brick plane!"], ["faris|harun", "Did you follow the instructions?"], ["anaya|musa", "Yusuf doesn't use instructions."], ["little", { zainab: "Uh-oh!", babymusa: "Uh-oh!" }]],
+  ],
+  'intro.introDragon': [
+    [["five", "AYRA HAS A DRAGON!"], ["anaya|yusuf", "A golden, sparkly, glowing... CONCERT dragon?"], ["musa|hassan", "Of course. Ayra loves K-pop."], ["little", { zainab: "Dragon! Rawr!", babymusa: "Rawr!", default: "Rawr!" }]],
+    [["ruman", "Ruman here. Why is there a golden dragon flying over Plano?"], ["musa|hassan", "Ayra is driving it."], ["ruman", "...Of course she is."]],
+    [["anaya|yusuf", "Everybody hold on to the dragon. Gently. Don't pull its mane."], ["harun|faris", "It's so SHINY!"], ["zainab|babymusa", { zainab: "Pretty!", babymusa: "Ooooh!" }]],
+  ],
+  'trip.introDragon': [
+    [["musa|hassan", "We're riding a golden dragon to Greensboro!"], ["five", "Best. Concert. EVER."], ["anaya|yusuf", "This is not a concert."], ["faris|harun", "It's a SKY concert!"]],
+  ],
   'trip.introTruck': [
     [["musa|hassan|ayra|harun", "We're flying to Greensboro in a TRUCK!"], ["anaya|yusuf", "In the BACK of a truck. With the wind in our hair."], ["five", "BEST. DAY. EVER."], ["little", Z("Vroom vroom!", "Vroom!")]],
     [["ruman", "Ruman here. Faris, you're driving all the way to Greensboro?"], ["anaya|yusuf", "He says he's a very good driver."], ["ruman", "He's five."], ["anaya|musa", "I KNOW."]],
@@ -308,6 +325,34 @@ export const SCRIPTS = {
     [["yusuf|musa", "The birds are going to think we're a giant chicken."], ["ayra|harun", "We ARE a giant chicken!"]],
     [["ruman", "Ruman here. Did a chicken just get on the walkie-talkie?"], ["hassan|musa", "That was Anaya Apa's horn!"]],
     [["little", { zainab: "Chicky! Chicky!", babymusa: "Bok!", default: "Bok!" }]],
+  ],
+  honkLego: [
+    [["five", "BEEP BEEP!"], ["little", { zainab: "Beep! Beep!", babymusa: "Bee!" }]],
+    [["musa|hassan", "The brick plane has a toy horn!"], ["anaya|musa", "Of course it does."]],
+    [["faris|harun", "Beep it again! BEEP IT AGAIN!"], ["anaya|musa", "Please don't."]],
+  ],
+  honkDragon: [
+    [["five", "The dragon ROARED!"], ["little", { zainab: "Rawr! Rawr!", babymusa: "Raa!" }]],
+    [["anaya|yusuf", "That roar was LOUD. And kind of... sparkly?"], ["harun|faris", "It's a concert dragon! It sings!"]],
+    [["ruman", "Ruman here. Did a dragon just roar? Over."], ["musa|hassan", "Yes. Over."], ["ruman", "Cool. Over."]],
+    [["faris|harun", "Do it again, Ayra! Make it roar!"], ["zainab|babymusa", { zainab: "Again! Rawr!", babymusa: "Rawr!" }]],
+  ],
+  legoBanter: [
+    [["faris|harun", "A brick just fell off!"], ["anaya|musa", "WHAT?!"], ["faris|harun", "Just kidding."], ["anaya|musa", "NOT funny."]],
+    [["musa|hassan", "How many bricks is this plane?"], ["anaya|faris", "Yusuf says about a million."], ["five", "A MILLION?!"]],
+    [["zainab|babymusa", { zainab: "Brick! Mine!", babymusa: "Ba!" }], ["anaya|musa", "No eating bricks!"]],
+    [["ayra|harun", "If we crash, can we just build it again?"], ["musa|anaya", "That's the best part of bricks!"]],
+    [["anaya|faris", "Everybody stay in your brick seat. Your BRICK seat."]],
+    [["harun|ayra", "Ow! I stepped on a brick!"], ["anaya|musa", "That's the worst feeling in the whole world."]],
+  ],
+  dragonBanter: [
+    [["harun|faris", "The dragon's scales are so shiny I can see myself!"], ["little", { zainab: "Me! Me!", babymusa: "Ba!" }]],
+    [["five", "Let's sing a K-pop song!"], ["anaya|yusuf", "No singing on the dragon."], ["five", "La la la LAAA!"], ["anaya|musa", "...Fine. ONE song."]],
+    [["musa|hassan", "The lights on the side keep changing colors!"], ["harun|faris", "It's like a light show!"]],
+    [["faris|harun", "Does the dragon eat candy?"], ["anaya|musa", "If it does, we're in trouble."]],
+    [["zainab|babymusa", { zainab: "Dragon nice!", babymusa: "Ba-ba!" }], ["musa|yusuf", "It IS a nice dragon."]],
+    [["harun|faris", "Can we keep the dragon?"], ["anaya|musa", "Where would it even sleep?"], ["harun|faris", "In the backyard!"]],
+    [["musa|hassan", "Everybody wave your light sticks!"], ["five", "*waves light sticks*"], ["little", { zainab: "Wave! Wave!", babymusa: "Ya!" }]],
   ],
   // extra chatter when Anaya Apa is flying the giant chicken tender
   tenderBanter: [

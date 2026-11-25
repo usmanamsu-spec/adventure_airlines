@@ -348,3 +348,6 @@ html, body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .topbar .btn.easymode.on { background: linear-gradient(#8fe36a, #3f9f2a); color: #fff; }
 
 .honk.tender { background: radial-gradient(circle at 40% 35%, #ffd98a, #c8761e); border-color: #fff4d8; }
+
+.honk.lego { background: linear-gradient(#ff3b30, #c8102e); border-radius: 14px; border-color: #ffd23f; box-shadow: 0 6px 0 rgba(0,0,0,.3), inset 0 -6px 0 rgba(0,0,0,.15); }
+.honk.dragon { background: radial-gradient(circle at 40% 35%, #fff0a0, #e0a020 60%, #b8730a); border-color: #ff4fd8; box-shadow: 0 0 18px #ff4fd8, 0 6px 0 rgba(0,0,0,.3); }

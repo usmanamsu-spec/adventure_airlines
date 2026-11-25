@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { World, textSprite } from './world/kit.js';
 import { juiceBox, sock as sockMesh, iceCream, firefly, fishingHat, glowTexture } from './world/props.js';
-import { buildVehicle } from './vehicles.js';
+import { buildVehicle, VEHICLES } from './vehicles.js';
 import { Flight, BASE_SPEED } from './flight.js';
 import { SCRIPTS, resolveSpeaker, fillText, isLittle } from './dialogue.js';
 import { clamp, damp, wrapAngle, DEG, lerp } from './util.js';
@@ -277,7 +277,7 @@ export class MissionRun {
     this.countdown = 3.2;
     this.lastCount = 4;
     this.app.input.recenter();
-    const introKey = this.player === 'faris' ? 'introTruck' : this.player === 'anaya' ? 'introTender' : isLittle(this.player) ? 'introBaby' : 'intro';
+    const introKey = VEHICLES[this.plane.kind]?.intro || (isLittle(this.player) ? 'introBaby' : 'intro');
     this.chat(SCRIPTS[`${this.def.id}.${introKey}`] ? `${this.def.id}.${introKey}` : `${this.def.id}.intro`, { priority: 2 });
     this.updateHud(true);
   }
@@ -406,7 +406,7 @@ export class MissionRun {
     this.time += dt;
     this.invuln = Math.max(0, this.invuln - dt);
     if (this.talking && this.t > this.talkUntil) this.talking = null;
-    if (this.phase === 'fly' && this.t - (this.lastChat || 0) > 9 && this.t > (this.chatBusy || 0)) this.chat(this.player === 'faris' && Math.random() < 0.4 ? 'truckBanter' : this.player === 'anaya' && Math.random() < 0.4 ? 'tenderBanter' : 'banter', { priority: 0 });
+    if (this.phase === 'fly' && this.t - (this.lastChat || 0) > 9 && this.t > (this.chatBusy || 0)) this.chat(VEHICLES[this.plane.kind]?.banter && Math.random() < 0.4 ? VEHICLES[this.plane.kind].banter : 'banter', { priority: 0 });
     // little reactions to boosting and juice
     const boostingNow = this.flight.boosting && !this.freeBoost;
     if (boostingNow && !this._wasBoosting && Math.random() < 0.35) this.chat('boost', { priority: 0 });
@@ -853,19 +853,19 @@ export class MissionRun {
   }
 
   honk() {
-    const kind = this.plane.kind, truck = kind === 'truck', tender = kind === 'tender';
-    this.honkCool = truck ? 0.6 : tender ? 0.95 : 0.45;
-    if (truck) this.app.sound.honkTruck(); else if (tender) this.app.sound.honkChicken(); else this.app.sound.honkPlane();
-    this.app.hud.comic(truck ? 'HOOONK!' : tender ? 'BAWK BAWK!' : 'HONK HONK!');
+    const v = VEHICLES[this.plane.kind] || VEHICLES.plane;
+    this.honkCool = v.cool;
+    this.app.sound[v.honk]();
+    this.app.hud.comic(v.comic);
     // a ring of sound puffs from the front
-    const nose = this.plane.group.localToWorld(V(0, 1, truck ? 3.6 : tender ? 4.1 : 3.2));
+    const nose = this.plane.group.localToWorld(V(0, 1, v.noseZ));
     for (let k = 0; k < 10; k++) {
       const a = k / 10 * Math.PI * 2, d = V(Math.cos(a), Math.sin(a), 0).applyQuaternion(this.plane.group.quaternion);
-      this.puffs.emit(nose, { color: truck ? 0.55 : tender ? 0.09 : 0.13, size: 0.8, life: 0.45, v: d.multiplyScalar(9), grow: 0.6, light: 0.75 });
+      this.puffs.emit(nose, { color: v.puff, size: 0.8, life: 0.45, v: d.multiplyScalar(9), grow: 0.6, light: 0.75 });
     }
     this.cheerT = Math.max(this.cheerT, 0.6);
     this.honks = (this.honks || 0) + 1;
-    if (this.honks === 1 || Math.random() < 0.45) this.chat(truck ? 'honkTruck' : tender ? 'honkTender' : 'honk', { priority: 0 });
+    if (this.honks === 1 || Math.random() < 0.45) this.chat(v.chat, { priority: 0 });
   }
 
   doTrick() {
@@ -935,7 +935,7 @@ export class MissionRun {
     const frame = Math.floor(this.t * 60);
     this.app.hud.speedLines(F.boosting);
     if (frame % 3 === 0) {
-      for (const tip of this.plane.tips) this.puffs.emit(g.localToWorld(tip.clone()), this.plane.kind === 'truck' ? { color: 0.52, size: 0.7, life: 0.5, grow: 1, light: 0.75, fade: 0.6 } : { size: 0.45, life: 0.45, grow: 0.8, light: 0.97, sat: 0.1, fade: 0.55 });
+      for (const tip of this.plane.tips) this.puffs.emit(g.localToWorld(tip.clone()), VEHICLES[this.plane.kind]?.trail ? { ...VEHICLES[this.plane.kind].trail, color: VEHICLES[this.plane.kind].trail.color ?? [0.9, 0.78, 0.12, 0.5][Math.floor(Math.random() * 4)] } : { size: 0.45, life: 0.45, grow: 0.8, light: 0.97, sat: 0.1, fade: 0.55 });
     }
     const alt = F.pos.y - this.groundAt(F.pos);
     if (alt < 8 && this.world.isWater(F.pos.x, F.pos.z) && frame % 2 === 0) {

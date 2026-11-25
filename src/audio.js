@@ -104,6 +104,30 @@ export class Sound {
       this.noise(0.12, { at, vol: 0.12, freq: 900, q: 2 });
     }
   }
+  /** Yusuf's brick plane: a squeaky plastic toy horn, beep-beep! (with a little brick click) */
+  honkLego() {
+    if (!this.ok) return;
+    this.noise(0.03, { vol: 0.2, freq: 3500, q: 3 });           // click
+    for (const at of [0.04, 0.24]) {
+      this.tone(988, 0.16, { at, vol: 0.22, type: 'square' });
+      this.tone(1319, 0.16, { at, vol: 0.12, type: 'triangle' });
+    }
+  }
+  /** Ayra's golden dragon: a big (friendly) RAWR, then a sparkly concert chime */
+  honkDragon() {
+    if (!this.ok) return;
+    const c = this.ctx, t0 = c.currentTime;
+    const o = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain(), lp = c.createBiquadFilter();
+    o.type = 'sawtooth'; o2.type = 'square';
+    o.frequency.setValueAtTime(150, t0); o.frequency.exponentialRampToValueAtTime(230, t0 + 0.15); o.frequency.exponentialRampToValueAtTime(95, t0 + 0.6);
+    o2.frequency.setValueAtTime(152, t0); o2.frequency.exponentialRampToValueAtTime(233, t0 + 0.15); o2.frequency.exponentialRampToValueAtTime(96, t0 + 0.6);
+    lp.type = 'lowpass'; lp.frequency.setValueAtTime(700, t0); lp.frequency.linearRampToValueAtTime(1800, t0 + 0.15); lp.frequency.linearRampToValueAtTime(500, t0 + 0.6);
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.4, t0 + 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.65);
+    o.connect(lp); o2.connect(lp); lp.connect(g); g.connect(this.sfxBus);
+    o.start(t0); o2.start(t0); o.stop(t0 + 0.7); o2.stop(t0 + 0.7);
+    this.noise(0.5, { vol: 0.18, freq: 500, q: 0.6 });         // breathy growl
+    [1047, 1319, 1568, 2093, 2637].forEach((f, i) => this.tone(f, 0.35, { at: 0.55 + i * 0.07, vol: 0.13, type: 'triangle' })); // ✨
+  }
   /** Anaya Apa's chicken tender: a chicken! bok bok bok... ba-GAWK! */
   honkChicken() {
     if (!this.ok) return;

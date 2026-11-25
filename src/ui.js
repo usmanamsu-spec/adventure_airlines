@@ -5,6 +5,7 @@ import { store, totalStars, availableStars, socksFound, isUnlocked, buyUpgrade, 
 
 import { NAMES } from './dialogue.js';
 import { KIDS } from './characters.js';
+import { VEHICLES, SPECIAL } from './vehicles.js';
 
 const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
@@ -121,29 +122,15 @@ export class UI {
       return `<button class="swatch ${p.paint === k ? 'sel' : ''}" data-k="${k}" style="--c:#${c.color.toString(16).padStart(6, '0')}" ${!owned && availableStars(p) < c.cost ? 'disabled' : ''}>
         <span class="sw"></span><span class="sw-name">${c.name}</span><span class="sw-cost">${owned ? (p.paint === k ? '✓' : '') : '⭐ ' + c.cost}</span></button>`;
     }).join('');
-    if (app.player === 'anaya') {
+    const special = VEHICLES[SPECIAL[app.player]];
+    if (special) {
+      const gi = special.garage;
       this.el.innerHTML = `
       <div class="garage-panel">
-        <div class="gp-head"><span>🔧 Anaya Apa's Garage</span><span class="gp-stars">⭐ ${availableStars(p)}</span></div>
-        <div class="gp-section">The Giant Chicken Tender 🍗✈️</div>
-        <div class="gp-sub" style="font-size:17px">Anaya Apa LOVES chicken tenders. When she flies, the cardboard plane turns into a giant, golden, extra-crispy flying chicken tender! French-fry wings, a fry propeller, and dipping-sauce rockets. Everybody else rides on top. Nobody is allowed to take a bite.</div>
-        <div class="gi owned"><div class="gi-name">Extra-crispy breading</div><div class="gi-desc">Already perfect, says Anaya Apa</div><div class="gi-own">✅</div></div>
-        <div class="gi owned"><div class="gi-name">Sauce-cup rockets</div><div class="gi-desc">Ketchup, honey mustard, BBQ and ranch</div><div class="gi-own">✅</div></div>
-        <div class="gi owned"><div class="gi-name">Chicken horn</div><div class="gi-desc">BAWK BAWK!</div><div class="gi-own">✅</div></div>
-        <div class="gp-sub">${socksFound(p) >= MISSIONS.length ? '🧦 All lost socks found: GOLDEN SLIPPERS unlocked!' : `🧦 Find all ${MISSIONS.length} lost socks for golden slippers (${socksFound(p)}/${MISSIONS.length})`}</div>
-        <button class="btn big done">Done</button>
-      </div>`;
-      this.bind('.done', () => { app.showGarage(false); this.map(); });
-      return;
-    }
-    if (app.player === 'faris') {
-      this.el.innerHTML = `
-      <div class="garage-panel">
-        <div class="gp-head"><span>🔧 Faris's Garage</span><span class="gp-stars">⭐ ${availableStars(p)}</span></div>
-        <div class="gp-section">The Flying Truck 🛻⚡</div>
-        <div class="gp-sub" style="font-size:17px">When Faris drives, the cardboard plane turns into his shiny, pointy, stainless-steel flying truck! Faris sits up front, and everybody else rides in the back.</div>
-        <div class="gi owned"><div class="gi-name">Rocket thrusters</div><div class="gi-desc">Already installed</div><div class="gi-own">✅</div></div>
-        <div class="gi owned"><div class="gi-name">Super-shiny steel</div><div class="gi-desc">No paint needed, says Faris</div><div class="gi-own">✅</div></div>
+        <div class="gp-head"><span>🔧 ${gi.title}</span><span class="gp-stars">⭐ ${availableStars(p)}</span></div>
+        <div class="gp-section">${gi.name}</div>
+        <div class="gp-sub" style="font-size:17px">${gi.desc}</div>
+        ${gi.items.map(([n, d]) => `<div class="gi owned"><div class="gi-name">${n}</div><div class="gi-desc">${d}</div><div class="gi-own">✅</div></div>`).join('')}
         <div class="gp-sub">${socksFound(p) >= MISSIONS.length ? '🧦 All lost socks found: GOLDEN SLIPPERS unlocked!' : `🧦 Find all ${MISSIONS.length} lost socks for golden slippers (${socksFound(p)}/${MISSIONS.length})`}</div>
         <button class="btn big done">Done</button>
       </div>`;

@@ -4,7 +4,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import './style.css';
 import { makeBoy, lookAt, setSlippers, BOYS, KIDS, RUMAN } from './characters.js';
 import { buildPlane } from './plane.js';
-import { buildVehicle, SPECIAL } from './vehicles.js';
+import { buildVehicle, SPECIAL, VEHICLES } from './vehicles.js';
 import { hotAirBalloon } from './world/props.js';
 import { Input } from './flight.js';
 import { Sound } from './audio.js';
@@ -259,7 +259,7 @@ class App {
     store.data.last = who;
     store.save();
     this.sound.unlock(); // first, while we're still inside the tap
-    this.refreshGaragePlane(); // Faris gets his truck, Anaya Apa her chicken tender
+    this.refreshGaragePlane(); // some pilots have their own special vehicle
     this.sound.startMusic('day');
     if (this.settings.controls === 'tilt') await this.input.requestMotion();
     this.state = 'map';
@@ -274,7 +274,7 @@ class App {
     const special = SPECIAL[this.player];
     this.titlePlane = buildVehicle(this.player, p);
     this.titlePlane.group.position.set(special ? 0.9 : 0.6, special ? 0 : 0.21 + (p.upgrades.floats ? 0.32 : 0), special ? -5.2 : -3.6);
-    if (special) this.titlePlane.group.scale.setScalar(special === 'tender' ? 0.58 : 0.62);
+    if (special) this.titlePlane.group.scale.setScalar(VEHICLES[special].backdrop);
     this.titlePlane.group.rotation.y = -0.5;
     this.titlePlane.group.traverse(o => { if (o.isMesh) o.castShadow = true; });
     this.titleScene.add(this.titlePlane.group);
