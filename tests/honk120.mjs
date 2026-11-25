@@ -17,13 +17,14 @@ for (const [hz, phase, pilot] of [[60, 'fly', 'yusuf'], [90, 'fly', 'yusuf'], [1
     let honks = 0; const orig = a.mission.honk.bind(a.mission); a.mission.honk = () => { honks++; orig(); };
     const App = Object.getPrototypeOf(a), el = document.querySelector('.honk');
     const raf = window.requestAnimationFrame; window.requestAnimationFrame = () => 0;
+    const draw = a.renderer.render; a.renderer.render = () => {}; // drawing isn't needed to test the horn (keeps the test fast)
     let now = performance.now(); a.last = now;
     const taps = phase === 'fly' ? 12 : 1;
     for (let tap = 0; tap < taps; tap++) {
       el.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 9, bubbles: true, cancelable: true, pointerType: 'touch' }));
       for (let f = 0; f < hz * 0.7; f++) { now += 1000 / hz; App.loop.call(a, now); }
     }
-    window.requestAnimationFrame = raf;
+    window.requestAnimationFrame = raf; a.renderer.render = draw;
     return `${pilot} @${hz}Hz during ${a.mission ? phase : '?'}: ${honks}/${taps} honks (${a.mission.plane.kind})`;
   }, [hz, phase, pilot]);
   console.log(r);
