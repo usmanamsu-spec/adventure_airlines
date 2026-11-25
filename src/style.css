@@ -276,3 +276,9 @@ body.portrait #rotate { display: flex; }
 .comic.go { animation: comic .9s cubic-bezier(.3,1.8,.5,1) forwards; }
 @keyframes comic { 0% { transform: translate(-50%, -50%) rotate(var(--rot)) scale(.2); opacity: 1; } 30% { transform: translate(-50%, -50%) rotate(var(--rot)) scale(1.15); } 80% { opacity: 1; } 100% { transform: translate(-50%, -60%) rotate(var(--rot)) scale(1); opacity: 0; } }
 .settings .row small { font-size: 12px; opacity: .65; display: block; }
+
+/* no zooming on iPad: buttons and controls opt out of double-tap zoom; the game area takes all touches */
+#hud, #hud button, .joystick, .boost, .trick, canvas { touch-action: none; }
+.chapter, .garage-panel, .sheet { touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+.modal button, #ui button, input { touch-action: manipulation; }
+html, body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }

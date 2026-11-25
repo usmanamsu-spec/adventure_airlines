@@ -12,6 +12,7 @@ import { MissionRun } from './mission.js';
 import { MISSIONS } from './levels.js';
 import { store, recordResult, socksFound } from './save.js';
 import { nextFrame } from './util.js';
+import { preventZoom } from './nozoom.js';
 
 const STEP = 1 / 60;
 const GOLD = [0xf2c230, 0xf2c230];
@@ -361,6 +362,7 @@ class App {
   }
 }
 
+preventZoom();
 const app = new App();
 window.__bsq = app;
 app.boot();

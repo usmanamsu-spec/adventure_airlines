@@ -97,4 +97,5 @@ node tests/smoke.mjs http://localhost:4173     # flies all 9 missions on autopil
 node tests/flow.mjs  http://localhost:4173     # menus → mission → results → next mission
 node tests/screens.mjs http://localhost:4173   # screenshots into tests/out/
 node tests/easy.mjs http://localhost:4173      # Easy flying with nobody touching the controls
+node tests/zoom.mjs http://localhost:4173      # pinch / double-tap zoom is blocked, two-thumb controls still work
 ```
