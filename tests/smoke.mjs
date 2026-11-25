@@ -18,7 +18,7 @@ for (const player of ['yusuf', 'musa']) {
   await page.evaluate((p) => { const a = window.__bsq; a.player = p; a.profile.upgrades.floats = true; }, player);
   const ids = await page.evaluate(() => (window.__bsqMissions || []).length);
   void ids;
-  const n = 9;
+  const n = await page.evaluate(() => window.__missions.length);
   for (let i = 0; i < n; i++) {
     const id = await page.evaluate(async (i) => { const a = window.__bsq; await a.startMission(i, { autopilot: true }); return a.mission.def.id; }, i);
     if (only && id !== only) continue;

@@ -1,7 +1,8 @@
 // World-building kit: batched low-poly scenery, sky, lighting, colliders.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { rng, fbm2 } from '../util.js';
+import { Water } from 'three/addons/objects/Water.js';
+import { rng, fbm2, smooth, lerp } from '../util.js';
 
 // ---------------------------------------------------------------- base geometries (non-indexed)
 const prism = (() => {
@@ -40,6 +41,19 @@ function matrix(x, y, z, sx, sy, sz, ry = 0, rx = 0, rz = 0) {
 class Batch {
   constructor() { this.parts = []; }
   add(geoKey, mat4, color) { this.parts.push({ geo: typeof geoKey === 'string' ? NI[geoKey] : geoKey, mat4, color: new THREE.Color(color) }); }
+  /** build one mesh per `chunk` metres of z so far-away scenery can be culled */
+  buildChunks(material, chunk) {
+    if (!chunk) { const m = this.build(material); return m ? [m] : []; }
+    const groups = new Map();
+    for (const p of this.parts) {
+      const k = Math.floor(p.mat4.elements[14] / chunk);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(p);
+    }
+    const out = [];
+    for (const parts of groups.values()) { const b = new Batch(); b.parts = parts; out.push(b.build(material)); }
+    return out;
+  }
   build(material) {
     if (!this.parts.length) return null;
     const geos = this.parts.map(({ geo, mat4, color }) => {
@@ -127,10 +141,44 @@ export const TIMES = {
   night: { top: 0x040a1e, horizon: 0x1a2a52, sun: 0x9db8ff, sunI: 0.45, sunDir: [-0.3, 0.7, 0.4], hemiSky: 0x40508a, hemiGround: 0x141a24, hemiI: 0.45, fog: 0x101a36, glow: 1.6, exposure: 1.1 },
 };
 
+// autumn leaves: reds, oranges, golds (and a little green left over)
+export const FALL = [0xd9462e, 0xe8682a, 0xf28c28, 0xf2b630, 0xf7d046, 0xb5381f, 0x9c2a22, 0xe39b3a, 0xc9a23a, 0x7f9a3a];
+
+// ---------------------------------------------------------------- reflective water
+let waterNormals = null;
+function makeWaterNormals() {
+  if (waterNormals) return waterNormals;
+  const S = 256, cv = document.createElement('canvas');
+  cv.width = cv.height = S;
+  const g = cv.getContext('2d'), img = g.createImageData(S, S);
+  const H = (x, y) => {
+    const u = x / S * Math.PI * 2, v = y / S * Math.PI * 2;
+    return Math.sin(u * 3 + v * 2) * 0.5 + Math.sin(u * 7 - v * 5 + 1.3) * 0.3 + Math.sin(u * 13 + v * 11 + 2.1) * 0.15 + Math.sin(-u * 5 + v * 9) * 0.25;
+  };
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+    const dx = H(x + 1, y) - H(x - 1, y), dy = H(x, y + 1) - H(x, y - 1);
+    const n = new THREE.Vector3(-dx * 2, -dy * 2, 1).normalize();
+    const i = (y * S + x) * 4;
+    img.data[i] = (n.x * 0.5 + 0.5) * 255; img.data[i + 1] = (n.y * 0.5 + 0.5) * 255; img.data[i + 2] = (n.z * 0.5 + 0.5) * 255; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  waterNormals = new THREE.CanvasTexture(cv);
+  waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
+  return waterNormals;
+}
+
 // ---------------------------------------------------------------- world
 export class World {
-  constructor(scene, { time = 'afternoon', size = 1600, ground = 0x6aa84f, height = null, seed = 1, fog = [260, 1300], center = [0, 0] } = {}) {
+  constructor(scene, { time = 'afternoon', size = 1600, ground = 0x6aa84f, height = null, seed = 1, fog = [260, 1300], center = [0, 0], length = null,
+    chunk = 0, fallFrom = null, fancy = false, renderer = null, timeBlend = null } = {}) {
     this.center = center;
+    this.length = length; // ground depth along z (defaults to size)
+    this.chunk = chunk;
+    this.fallFrom = fallFrom; // z beyond which the trees wear autumn colours
+    this.fancy = fancy;
+    this.renderer = renderer;
+    this.timeBlend = timeBlend;
+    this.waters = [];
     if (!WIN) WIN = windowTextures();
     this.scene = scene;
     this.group = new THREE.Group();
@@ -153,6 +201,7 @@ export class World {
   }
 
   groundHeight(x, z) { return this.heightFn ? this.heightFn(x, z) : 0; }
+  isFall(z) { return this.fallFrom !== null && z > this.fallFrom; }
   isWater(x, z) {
     for (const w of this.water) {
       if (w.type === 'rect') { if (Math.abs(x - w.x) < w.w / 2 && Math.abs(z - w.z) < w.d / 2) return true; }
@@ -245,7 +294,7 @@ export class World {
     if (kind === 'pine') {
       const h = (9 + r() * 6) * s;
       this.shape('cyl6', x, y0, z, 0.6 * s, h * 0.25, 0.6 * s, 0x5a3e2a);
-      const col = color ?? [0x2f6b3a, 0x2a5e34, 0x376f3c][Math.floor(r() * 3)];
+      const col = color ?? (this.isFall(z) && r() < 0.35 ? [0xc8502a, 0xe0802a, 0xd8a02a][Math.floor(r() * 3)] : [0x2f6b3a, 0x2a5e34, 0x376f3c][Math.floor(r() * 3)]);
       this.shape('cone', x, y0 + h * 0.18, z, h * 0.42, h * 0.55, h * 0.42, col);
       this.shape('cone', x, y0 + h * 0.45, z, h * 0.32, h * 0.5, h * 0.32, new THREE.Color(col).multiplyScalar(1.1));
       if (collide) this.addSphereCollider(new THREE.Vector3(x, y0 + h * 0.45, z), h * 0.22);
@@ -257,7 +306,7 @@ export class World {
       const h = (6 + r() * 4) * s;
       this.shape('cyl6', x, y0, z, 0.7 * s, h * 0.45, 0.7 * s, 0x6a4a32);
       const blossom = !color && r() < 0.14;
-      const col = color ?? (blossom ? [0xff9fd0, 0xffb347, 0xfff07a][Math.floor(r() * 3)] : [0x55b83a, 0x6cc845, 0x48a83a, 0x7ad04f][Math.floor(r() * 4)]);
+      const col = color ?? (this.isFall(z) ? FALL[Math.floor(r() * FALL.length)] : blossom ? [0xff9fd0, 0xffb347, 0xfff07a][Math.floor(r() * 3)] : [0x55b83a, 0x6cc845, 0x48a83a, 0x7ad04f][Math.floor(r() * 4)]);
       const rad = h * 0.42;
       this.shape('sphere', x, y0 + h * 0.62, z, rad * 2, rad * 1.8, rad * 2, col);
       this.shape('sphere', x + rad * 0.5, y0 + h * 0.5, z + rad * 0.3, rad * 1.3, rad * 1.2, rad * 1.3, new THREE.Color(col).multiplyScalar(0.92));
@@ -302,17 +351,49 @@ export class World {
   }
 
   waterRect(x, z, w, d, color = 0x3f8fd0) {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), this.waterMat(color));
-    m.rotation.x = -Math.PI / 2; m.position.set(x, 0.08, z); m.receiveShadow = true;
-    this.group.add(m);
+    this.addWater(new THREE.PlaneGeometry(w, d), x, z, color, Math.max(w, d) / 2);
     this.water.push({ type: 'rect', x, z, w, d });
   }
   waterEllipse(x, z, rx, rz, color = 0x3f8fd0) {
-    const m = new THREE.Mesh(new THREE.CircleGeometry(1, 48), this.waterMat(color));
-    m.scale.set(rx, rz, 1);
-    m.rotation.x = -Math.PI / 2; m.position.set(x, 0.08, z); m.receiveShadow = true;
-    this.group.add(m);
+    const geo = new THREE.CircleGeometry(1, 48);
+    geo.scale(rx, rz, 1);
+    this.addWater(geo, x, z, color, Math.max(rx, rz));
     this.water.push({ type: 'ellipse', x, z, rx, rz });
+  }
+  addWater(geo, x, z, color, radius) {
+    const cheap = new THREE.Mesh(geo, this.waterMat(color));
+    cheap.rotation.x = -Math.PI / 2; cheap.position.set(x, 0.08, z); cheap.receiveShadow = true;
+    this.group.add(cheap);
+    if (!this.fancy) return;
+    // mirror-like water that reflects the sky, the landmarks and your plane
+    const fancy = new Water(geo, {
+      textureWidth: 512, textureHeight: 512, waterNormals: makeWaterNormals(),
+      sunDirection: new THREE.Vector3(0.4, 0.8, 0.3).normalize(), sunColor: 0xffffff,
+      waterColor: new THREE.Color(color).multiplyScalar(0.45), distortionScale: 2.2, fog: true, alpha: 1,
+    });
+    fancy.material.uniforms.size.value = 4;
+    fancy.rotation.x = -Math.PI / 2; fancy.position.set(x, 0.1, z);
+    fancy.visible = false;
+    this.group.add(fancy);
+    this.waters.push({ cheap, fancy, x, z, radius });
+  }
+
+  /** soft drifting mist (great in the Smoky Mountains) */
+  mist(x, y, z, s = 60, opacity = 0.35) {
+    if (!this._mistTex) {
+      const cv = document.createElement('canvas'); cv.width = cv.height = 128;
+      const g = cv.getContext('2d'), gr = g.createRadialGradient(64, 64, 4, 64, 64, 64);
+      gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(0.5, 'rgba(255,255,255,0.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+      this._mistTex = new THREE.CanvasTexture(cv);
+    }
+    const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: this._mistTex, color: 0xf2f6ff, transparent: true, opacity, depthWrite: false }));
+    m.position.set(x, y, z);
+    m.scale.set(s * 2, s * 0.7, 1);
+    this.group.add(m);
+    const ph = this.r() * 6;
+    this.addDyn((dt, t) => { m.position.x = x + Math.sin(t * 0.08 + ph) * 12; });
+    return m;
   }
   waterMat(color) {
     if (!this._waterMat) this._waterMat = new Map();
@@ -333,17 +414,17 @@ export class World {
     const T = this.time;
     const night = this.timeName === 'night';
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, flatShading: true });
-    const solid = this.solid.build(mat);
-    if (solid) this.group.add(solid);
+    for (const m of this.solid.buildChunks(mat, this.chunk)) this.group.add(m);
     const glassMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.45, metalness: 0.1, map: WIN.day, emissiveMap: WIN.lit, emissive: 0xffffff, emissiveIntensity: T.glow * 0.9 });
-    const glass = this.glass.build(glassMat);
-    if (glass) this.group.add(glass);
-    const glowMesh = this.glow.build(new THREE.MeshStandardMaterial({ vertexColors: true, emissive: 0xffd98a, emissiveIntensity: night ? 1.2 : 0.2, roughness: 0.6 }));
-    if (glowMesh) { glowMesh.castShadow = false; this.group.add(glowMesh); }
+    this.glassMat = glassMat;
+    for (const m of this.glass.buildChunks(glassMat, this.chunk)) this.group.add(m);
+    this.glowMat = new THREE.MeshStandardMaterial({ vertexColors: true, emissive: 0xffd98a, emissiveIntensity: night ? 1.2 : 0.2, roughness: 0.6 });
+    for (const m of this.glow.buildChunks(this.glowMat, this.chunk)) { m.castShadow = false; this.group.add(m); }
 
     // ground
-    const S = this.size, seg = this.heightFn ? 160 : 60;
-    const gg = new THREE.PlaneGeometry(S, S, seg, seg);
+    const S = this.size, L = this.length || S;
+    const seg = this.heightFn ? Math.round(S / 9) : 60, segL = this.heightFn ? Math.round(L / 9) : 60;
+    const gg = new THREE.PlaneGeometry(S, L, seg, segL);
     gg.rotateX(-Math.PI / 2);
     gg.translate(this.center[0], 0, this.center[1]);
     const p = gg.attributes.position;
@@ -355,7 +436,8 @@ export class World {
       p.setY(i, y);
       const n = fbm2(x * 0.01, z * 0.01, 3);
       tmp.copy(base).multiplyScalar(0.9 + n * 0.18);
-      if (this.heightFn && y > 40) tmp.lerp(new THREE.Color(0x5a6f52), Math.min(1, (y - 40) / 40));
+      if (this.isFall(z)) tmp.lerp(new THREE.Color(0xa8913a), 0.45 * smooth(this.fallFrom, this.fallFrom + 150, z)); // autumn meadow
+      if (this.heightFn && y > 40) tmp.lerp(new THREE.Color(this.isFall(z) ? 0x8a5a3a : 0x5a6f52), Math.min(1, (y - 40) / 50));
       cols.push(tmp.r, tmp.g, tmp.b);
     }
     gg.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
@@ -365,12 +447,13 @@ export class World {
     this.group.add(ground);
 
     // sky dome
-    const sky = new THREE.SphereGeometry(4000, 32, 16);
+    const SKY_R = 1700;
+    const sky = new THREE.SphereGeometry(SKY_R, 32, 16);
     const sp = sky.attributes.position;
     const sc = [];
     const top = new THREE.Color(T.top), hor = new THREE.Color(T.horizon);
     for (let i = 0; i < sp.count; i++) {
-      const y = sp.getY(i) / 4000;
+      const y = sp.getY(i) / SKY_R;
       const c = hor.clone().lerp(top, Math.pow(Math.max(0, y), 0.55));
       sc.push(c.r, c.g, c.b);
     }
@@ -383,21 +466,25 @@ export class World {
       const r = rng(4), pts = [];
       for (let i = 0; i < 1500; i++) {
         const u = r() * Math.PI * 2, v = 0.05 + r() * 0.95;
-        pts.push(Math.cos(u) * Math.sqrt(1 - v * v) * 3500, v * 3500, Math.sin(u) * Math.sqrt(1 - v * v) * 3500);
+        pts.push(Math.cos(u) * Math.sqrt(1 - v * v) * SKY_R * 0.9, v * SKY_R * 0.9, Math.sin(u) * Math.sqrt(1 - v * v) * SKY_R * 0.9);
       }
       const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-      const stars = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: 6, sizeAttenuation: true, fog: false }));
+      const stars = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: 3, sizeAttenuation: true, fog: false }));
       skyMesh.add(stars);
-      const moon = new THREE.Mesh(new THREE.SphereGeometry(70, 24, 16), new THREE.MeshBasicMaterial({ color: 0xfff6dc, fog: false }));
-      moon.position.set(-1200, 1600, 2000);
+      const moon = new THREE.Mesh(new THREE.SphereGeometry(32, 24, 16), new THREE.MeshBasicMaterial({ color: 0xfff6dc, fog: false }));
+      moon.position.set(-520, 700, 860);
       skyMesh.add(moon);
     }
-    if (this.timeName === 'sunset' || this.timeName === 'morning') {
+    this.skyY = Array.from({ length: sp.count }, (_, i) => sp.getY(i) / SKY_R);
+    if (!night) {
       const d = new THREE.Vector3(...T.sunDir).normalize();
-      const sun = new THREE.Mesh(new THREE.SphereGeometry(150, 24, 16), new THREE.MeshBasicMaterial({ color: this.timeName === 'sunset' ? 0xffc070 : 0xfff2c0, fog: false }));
-      sun.position.copy(d.multiplyScalar(3600));
-      skyMesh.add(sun);
+      const sunBall = new THREE.Mesh(new THREE.SphereGeometry(62, 24, 16), new THREE.MeshBasicMaterial({ color: this.timeName === 'sunset' ? 0xffc070 : 0xfff2c0, fog: false, toneMapped: false }));
+      sunBall.position.copy(d.multiplyScalar(SKY_R * 0.92));
+      sunBall.visible = this.timeName !== 'afternoon' || !!this.timeBlend;
+      skyMesh.add(sunBall);
+      this.sunBall = sunBall;
     }
+    this.SKY_R = SKY_R;
 
     this.scene.fog = new THREE.Fog(T.fog, this.fogRange[0], this.fogRange[1]);
     const hemi = new THREE.HemisphereLight(T.hemiSky, T.hemiGround, T.hemiI);
@@ -411,12 +498,59 @@ export class World {
     sun.shadow.normalBias = 0.05;
     this.sunDir = new THREE.Vector3(...T.sunDir).normalize();
     this.sun = sun;
+    this.hemi = hemi;
     this.group.add(sun, sun.target);
+    this.envLevel = -1;
+    if (this.timeBlend) this.applyTime(0, true); else this.makeEnv();
+  }
+
+  /** image-based lighting: everything picks up the colours of this sky */
+  makeEnv() {
+    if (!this.renderer) return;
+    const pm = new THREE.PMREMGenerator(this.renderer);
+    const envScene = new THREE.Scene();
+    const sky = this.sky.clone();
+    sky.position.set(0, 0, 0);
+    envScene.add(sky);
+    const old = this.envTex;
+    this.envTex = pm.fromScene(envScene, 0.02, 1, 3000).texture;
+    pm.dispose();
+    this.scene.environment = this.envTex;
+    if (old) old.dispose();
+  }
+
+  /** blend between two times of day (e.g. afternoon in Texas to sunset in Greensboro) */
+  applyTime(k, force = false) {
+    const B = this.timeBlend, A = TIMES[B.from], Z = TIMES[B.to];
+    if (!force && Math.abs(k - (this._k ?? -1)) < 0.002) return;
+    this._k = k;
+    const C = (a, b) => new THREE.Color(a).lerp(new THREE.Color(b), k);
+    const top = C(A.top, Z.top), hor = C(A.horizon, Z.horizon);
+    const col = this.sky.geometry.attributes.color;
+    for (let i = 0; i < col.count; i++) { const c = hor.clone().lerp(top, Math.pow(Math.max(0, this.skyY[i]), 0.55)); col.setXYZ(i, c.r, c.g, c.b); }
+    col.needsUpdate = true;
+    this.sunDir.set(...A.sunDir).lerp(new THREE.Vector3(...Z.sunDir), k).normalize();
+    this.sun.color.copy(C(A.sun, Z.sun)); this.sun.intensity = lerp(A.sunI, Z.sunI, k);
+    this.hemi.color.copy(C(A.hemiSky, Z.hemiSky)); this.hemi.groundColor.copy(C(A.hemiGround, Z.hemiGround)); this.hemi.intensity = lerp(A.hemiI, Z.hemiI, k);
+    this.scene.fog.color.copy(C(A.fog, Z.fog));
+    this.glassMat.emissiveIntensity = lerp(A.glow, Z.glow, k) * 0.9;
+    this.glowMat.emissiveIntensity = lerp(0.2, 0.9, k);
+    if (this.sunBall) { this.sunBall.position.copy(this.sunDir).multiplyScalar(this.SKY_R * 0.92); this.sunBall.material.color.copy(C(0xfff6d0, 0xffb060)); }
+    for (const w of this.waters) { w.fancy.material.uniforms.sunDirection.value.copy(this.sunDir); w.fancy.material.uniforms.sunColor.value.copy(this.sun.color); }
+    const level = Math.round(k * 4);
+    if (level !== this.envLevel) { this.envLevel = level; this.makeEnv(); }
   }
 
   /** keep the sky and shadow camera centred on the player */
   follow(pos) {
     this.sky.position.set(pos.x, 0, pos.z);
+    if (this.timeBlend) this.applyTime(smooth(this.timeBlend.z0, this.timeBlend.z1, pos.z));
+    // reflective water only when close (each one renders a mirror image of the scene)
+    for (const w of this.waters) {
+      const near = Math.hypot(pos.x - w.x, pos.z - w.z) < w.radius + 550;
+      w.fancy.visible = near; w.cheap.visible = !near;
+      if (near) w.fancy.material.uniforms.time.value += 1 / 60;
+    }
     this.sun.position.copy(pos).addScaledVector(this.sunDir, 300);
     this.sun.target.position.copy(pos);
   }
@@ -430,5 +564,7 @@ export class World {
       if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { if (m.map && m.map !== WIN.day) m.map.dispose(); m.dispose(); });
     });
     this.scene.fog = null;
+    if (this.envTex) this.envTex.dispose();
+    for (const w of this.waters) { w.fancy.material.dispose(); w.fancy.getRenderTarget?.()?.dispose?.(); }
   }
 }

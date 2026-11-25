@@ -4,7 +4,7 @@ A short 3D flying game for iPad starring **Yusuf** (Plano, TX) and **Musa** (Gre
 
 ![Title screen](docs/screenshots/title.png)
 
-**Play time:** about 45–60 minutes for 8 missions plus the long flight between states. Every mission has 3 stars to earn and a hidden lost sock 🧦.
+**Play time:** about 5 minutes: a quick test flight, then one big cross-country flight. Every mission has 3 stars to earn and a hidden lost sock 🧦.
 
 ## How to play
 
@@ -33,23 +33,17 @@ The game helps kids out: big rainbow rings, gentle aim-assist toward the next ta
  Stars buy plane upgrades in the **Garage**: umbrella wings for tighter turns, a leaf-blower engine for a bigger boost tank, and flamingo floats for landing on water. The **Landing helper** setting makes landings easier.
 
 ### Missions
-| # | Mission | Place |
-|---|---|---|
-| 1 | First Flight | Yusuf's cul-de-sac, Plano |
-| 2 | Downtown Dash | Historic Downtown Plano |
-| 3 | Balloon Festival | Oak Point Park, Plano |
-| 4 | Big City: Dallas | Reunion Tower and the Trinity River |
-| – | The Long Flight | Texas → Arkansas → Tennessee → North Carolina |
-| 5 | Firefly Night | Musa's neighborhood, Greensboro |
-| 6 | Lake Brandt Splashdown | Lake Brandt (needs Flamingo Floats) |
-| 7 | Gate City Tour | Downtown Greensboro: depot, LeBauer Park, ballpark, Science Center |
-| 8 | Big City: Raleigh | The giant acorn chase and the Dix Park sunflowers |
+Both boys fly in every mission: whoever is playing pilots up front, and the other rides in the back seat.
 
-| | |
-|---|---|
-| ![Plano](docs/screenshots/plano.png) | ![Balloons](docs/screenshots/balloons.png) |
-| ![Dallas](docs/screenshots/dallas.png) | ![Fireflies](docs/screenshots/fireflies.png) |
-| ![Greensboro](docs/screenshots/greensboro.png) | ![Results](docs/screenshots/results.png) |
+| # | Mission | What happens |
+|---|---|---|
+| 1 | **Test Flight** (about 1 minute) | A quick spin around Yusuf's cul-de-sac in Plano, then land on Sunny Lane |
+| 2 | **The Big Flight** (about 4 minutes) | Plano → Dallas (Reunion Tower) → Little Rock (Arkansas River) → the Mississippi at Memphis (M-bridge, Pyramid) → Nashville (the "Batman Building", the Parthenon) → the **Smoky Mountains in fall colors** (Clingmans Dome) → Blue Ridge Parkway → Pilot Mountain → **Greensboro at sunset**: Guilford Courthouse battlefield, Lake Brandt, the Science Center, the Coliseum, Elm Street, the Carolina Theatre, LeBauer Park's floating net, the ballpark, the depot, N.C. A&T, and a landing at Musa's house |
+
+The leaves turn red, orange and gold from Tennessee onward, with falling leaves around the plane and mist in the mountains. The afternoon slowly turns into a golden sunset as you fly east.
+
+### Graphics
+**Fancy** graphics (default; ⚙️ Settings → Graphics) add a glow on bright light (the sun, rings, city lights, fireworks), mirror-like water that reflects the sky and landmarks, and lighting that takes its colors from the sky. Real ray tracing isn't available in iPad browsers, so these effects approximate that look. If an older iPad stutters, switch to **Fast**.
 
 ## Run it locally
 

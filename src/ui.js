@@ -54,12 +54,10 @@ export class UI {
       const needs = m.requires && !p.upgrades[m.requires];
       return `<button class="mcard ${open ? '' : 'locked'} ${rec?.done ? 'done' : ''}" data-i="${i}" ${open ? '' : 'disabled'}>
         <div class="mc-icon">${open ? m.icon : '🔒'}</div>
-        <div class="mc-body"><div class="mc-title">${m.id === 'trip' ? '' : (i < 4 ? i + 1 : i) + '. '}${m.title}</div><div class="mc-place">${m.place}</div></div>
+        <div class="mc-body"><div class="mc-title">${i + 1}. ${m.title}</div><div class="mc-place">${m.place}</div></div>
         <div class="mc-right"><div class="mc-stars">${stars}</div><div class="mc-sock">${rec?.sock ? '🧦' : ''}${needs && open ? '🦩?' : ''}</div></div>
       </button>`;
     };
-    const ch1 = MISSIONS.map((m, i) => [m, i]).filter(([m]) => m.chapter === 1);
-    const ch2 = MISSIONS.map((m, i) => [m, i]).filter(([m]) => m.chapter === 2);
     this.el.innerHTML = `
       <div class="topbar">
         <img class="tb-face" src="${app.portraits[who]}">
@@ -72,8 +70,10 @@ export class UI {
         <button class="btn switch">👥 Switch pilot</button>
       </div>
       <div class="chapters">
-        <div class="chapter"><div class="ch-title">Chapter 1 · <b>Plano, Texas</b></div><div class="ch-sub">${who === 'yusuf' ? 'Yusuf flies. Musa is Mission Control!' : 'Musa flies Yusuf\'s plane by remote control!'}</div>${ch1.map(([m, i]) => card(m, i)).join('')}</div>
-        <div class="chapter"><div class="ch-title">Chapter 2 · <b>Greensboro, North Carolina</b></div><div class="ch-sub">${who === 'yusuf' ? 'Musa shows Yusuf his town!' : 'Captain Musa shows Yusuf his town!'}</div>${ch2.map(([m, i]) => card(m, i)).join('')}</div>
+        <div class="chapter"><div class="ch-title">✈️ <b>Plano ➜ Greensboro</b></div>
+          <div class="ch-sub">${NAMES[who]} flies, ${NAMES[who === 'yusuf' ? 'musa' : 'yusuf']} rides in the back. Musa visited Plano, and now they're flying home to Greensboro together!</div>
+          ${MISSIONS.map((m, i) => card(m, i)).join('')}
+        </div>
       </div>`;
     this.bind('.mcard', (b) => this.briefing(Number(b.dataset.i)));
     this.bind('.garage', () => this.garage());
@@ -148,6 +148,10 @@ export class UI {
       </div></div>
       <div class="row"><span>Steering sensitivity</span><input type="range" class="sens" min="0.6" max="1.8" step="0.1" value="${s.sensitivity}"></div>
       <div class="row"><span>Flip up/down</span><button class="tog inv ${s.invert ? 'on' : ''}">${s.invert ? 'On' : 'Off'}</button></div>
+      <div class="row"><span>Graphics <small>(Fancy: glow, mirror-like water, sky lighting)</small></span><div class="seg">
+        <button data-g="fancy" class="${s.graphics !== 'fast' ? 'on' : ''}">✨ Fancy</button>
+        <button data-g="fast" class="${s.graphics === 'fast' ? 'on' : ''}">⚡ Fast</button>
+      </div></div>
       <div class="row"><span>Easy flying <small>(auto height, dodges buildings, lands itself)</small></span><button class="tog easy ${s.easy !== false ? 'on' : ''}">${s.easy !== false ? 'On' : 'Off'}</button></div>
       <div class="row"><span>Landing helper</span><button class="tog assist ${s.assist ? 'on' : ''}">${s.assist ? 'On' : 'Off'}</button></div>
       <div class="row"><span>Sound effects</span><button class="tog snd ${s.sound ? 'on' : ''}">${s.sound ? 'On' : 'Off'}</button></div>
@@ -167,6 +171,7 @@ export class UI {
     })));
     modal.querySelector('.sens').addEventListener('input', (e) => { s.sensitivity = Number(e.target.value); save(); });
     const tog = (cls, key) => modal.querySelector(cls).addEventListener('click', this.click(() => { s[key] = !s[key]; save(); modal.remove(); this.settings(back); }));
+    modal.querySelectorAll('[data-g]').forEach(b => b.addEventListener('click', this.click(() => { s.graphics = b.dataset.g; save(); modal.remove(); this.settings(back); })));
     modal.querySelector('.easy').addEventListener('click', this.click(() => { s.easy = s.easy === false; save(); modal.remove(); this.settings(back); }));
     tog('.inv', 'invert'); tog('.assist', 'assist'); tog('.snd', 'sound'); tog('.mus', 'music');
     modal.querySelector('.reset').addEventListener('click', this.click(() => {
@@ -230,7 +235,7 @@ export class UI {
     this.el.className = 'ending';
     this.el.innerHTML = `<div class="end-card">
       <div class="end-title">Best. Summer. Ever.</div>
-      <p>The sun went down over Greensboro. ${NAMES[who]} and ${NAMES[buddy]} sat in the cardboard plane, still in their red plaid pajamas, sharing the last juice box.</p>
+      <p>The sun went down over Greensboro and the fall leaves glowed orange. ${NAMES[who]} and ${NAMES[buddy]} sat in the cardboard plane in Musa's front yard, still in their red plaid pajamas, sharing the last juice box.</p>
       <p>"Next summer," said ${NAMES[buddy]}, "you visit ${buddy === 'yusuf' ? 'Plano' : 'Greensboro'}... and we fly even farther."</p>
       <p>"Deal," said ${NAMES[who]}. "Backyard Squadron forever!"</p>
       <div class="credits">

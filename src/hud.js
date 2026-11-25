@@ -98,7 +98,7 @@ export class Hud {
   }
   say(who, text, ms = 3600) {
     this.face.src = this.app.portraits[who] || '';
-    this.who.textContent = NAMES[who] + (this.app.mission && this.app.mission.def.chapter === 1 && who === 'musa' ? ' · Mission Control' : '');
+    this.who.textContent = NAMES[who] + ' · back seat';
     this.said.textContent = text;
     this.bubble.classList.remove('hidden');
     this.bubble.classList.remove('pop'); void this.bubble.offsetWidth; this.bubble.classList.add('pop');

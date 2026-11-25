@@ -33,11 +33,11 @@ await page.evaluate(() => { const a = window.__bsq; a.mission.autopilot = true; 
 await page.waitForSelector('.results', { timeout: 20000 });
 await page.waitForTimeout(1800);
 await page.screenshot({ path: `${out}/flow-results.png` });
-const unlocked = await page.evaluate(() => window.__bsq.profile.missions.m1);
-console.log('saved m1', JSON.stringify(unlocked));
+const unlocked = await page.evaluate(() => window.__bsq.profile.missions.intro);
+console.log('saved intro', JSON.stringify(unlocked));
 await page.click('.results .next');
-await page.waitForFunction(() => window.__bsq.state === 'mission' && window.__bsq.mission.def.id === 'm2', null, { timeout: 120000 });
-console.log('next mission started: m2');
+await page.waitForFunction(() => window.__bsq.state === 'mission' && window.__bsq.mission.def.id === 'trip', null, { timeout: 120000 });
+console.log('next mission started: trip');
 // sideways guard (the game is portrait-only)
 await page.setViewportSize({ width: 1180, height: 820 });
 await page.waitForTimeout(1600);

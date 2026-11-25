@@ -14,7 +14,7 @@ export const PAINTS = {
 export const UPGRADES = {
   wings: { name: 'Patio-Umbrella Wings', desc: 'Tighter turns', cost: 3 },
   blower: { name: 'Leaf-Blower Engine', desc: 'Bigger boost tank', cost: 4 },
-  floats: { name: 'Flamingo Floats', desc: 'Land on water!', cost: 3 },
+  floats: { name: 'Flamingo Floats', desc: 'Splash-proof and fabulous', cost: 3 },
 };
 
 function boxTexture(color, seed = 5) {

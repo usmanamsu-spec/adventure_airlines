@@ -15,7 +15,8 @@ const log = await page.evaluate(async ([i, secs, mode]) => {
     a.sim(2);
     const F = m.flight, T = m.currentTarget();
     const o = m.currentObjective;
-    out.push(`${t + 2}s phase=${m.phase} count=${o ? o.count : '-'} pos=${[F.pos.x, F.pos.y, F.pos.z].map(Math.round)} tgt=${T ? [T.x, T.y, T.z].map(Math.round) : '-'} bumps=${m.bumps}`);
+    const b0 = m._lastB ?? 0; m._lastB = m.bumps;
+    if (m.bumps !== b0 || (t % 20) === 0) out.push(`${t + 2}s phase=${m.phase} count=${o ? o.count : '-'} pos=${[F.pos.x, F.pos.y, F.pos.z].map(Math.round)} gnd=${Math.round(m.groundAt(F.pos))} tgt=${T ? [T.x, T.y, T.z].map(Math.round) : '-'} bumps=${m.bumps} candy=${m.candiesGot}`);
     if (m.finished) break;
   }
   return out;

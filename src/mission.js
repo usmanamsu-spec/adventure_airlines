@@ -5,7 +5,7 @@ import { juiceBox, sock as sockMesh, iceCream, firefly, fishingHat, glowTexture 
 import { buildPlane } from './plane.js';
 import { Flight, BASE_SPEED } from './flight.js';
 import { clamp, damp, wrapAngle, DEG, lerp } from './util.js';
-import { Confetti, Puffs, birdFlock, addTraffic, candy, rainbowRing, Shockwaves, Fireworks, skyRainbow } from './fx.js';
+import { Confetti, Puffs, birdFlock, addTraffic, candy, rainbowRing, Shockwaves, Fireworks, skyRainbow, Leaves } from './fx.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
@@ -48,7 +48,8 @@ export class MissionRun {
     this.scene = new THREE.Scene();
     this.scene.environment = this.app.envMap;
     this.scene.environmentIntensity = def.time === 'night' ? 0.15 : 0.45;
-    const world = new World(this.scene, { ...def.world, time: def.time, seed: 11 });
+    const fancy = this.settings.graphics !== 'fast';
+    const world = new World(this.scene, { ...def.world, time: def.time, seed: 11, fancy, renderer: this.app.renderer });
     this.world = world;
     this.spec = def.build(world, { player: this.player, upgrades: this.profile.upgrades });
     world.finish();
@@ -60,20 +61,12 @@ export class MissionRun {
     plane.setNight(!!S.night);
     this.plane = plane;
     this.scene.add(plane.group);
-    const ch1 = def.chapter === 1;
-    const pilotName = ch1 ? 'yusuf' : this.player;
-    const pilotDrives = !(ch1 && this.player === 'musa');
-    this.pilotModel = this.app.getBoy(pilotName, pilotDrives ? 'drive' : 'ride');
+    // both boys fly together: the player is the pilot up front, the buddy rides in the back
+    this.pilotModel = this.app.getBoy(this.player, 'drive');
     this.seat(this.pilotModel, plane.seats.front);
-    if (!ch1) {
-      this.passenger = this.app.getBoy(this.buddy, 'ride');
-      this.seat(this.passenger, plane.seats.back);
-    } else if (def.id === 'trip') {
-      const bag = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.42, 0.35), new THREE.MeshStandardMaterial({ color: 0x2f62c4, roughness: 0.6 }));
-      bag.position.set(0, 0.2, 0);
-      plane.seats.back.add(bag);
-    }
-    this.speaker = ch1 ? (this.player === 'yusuf' ? 'musa' : 'yusuf') : this.buddy;
+    this.passenger = this.app.getBoy(this.buddy, 'ride');
+    this.seat(this.passenger, plane.seats.back);
+    this.speaker = this.buddy;
 
     // objectives
     this.objectives = S.objectives.map(o => this.makeObjective(o));
@@ -107,7 +100,7 @@ export class MissionRun {
     this.scene.add(arrow);
 
     // camera
-    this.camera = new THREE.PerspectiveCamera(62, this.app.aspect, 0.3, 5000);
+    this.camera = new THREE.PerspectiveCamera(62, this.app.aspect, 0.3, 2400);
     this.camPos = new THREE.Vector3();
     this.camLook = new THREE.Vector3();
 
@@ -120,6 +113,7 @@ export class MissionRun {
     fc.forEach(([x, z], i) => birdFlock(world, x, z, { n: 5 + (i % 3), radius: 90 + i * 40, y: 38 + i * 12, speed: 0.1 + i * 0.03, seed: i * 2.1, color: def.time === 'night' ? 0x101018 : 0x2a2a3a }));
     this.confetti = new Confetti(this.scene);
     this.puffs = new Puffs(this.scene, 220);
+    this.leaves = new Leaves(this.scene);
     this.shock = new Shockwaves(this.scene);
     this.fireworks = new Fireworks(this.puffs, this.app.sound);
     if (def.time !== 'night') this.scene.add(skyRainbow(V(...S.spawn.p), S.spawn.h + 0.4));
@@ -151,12 +145,13 @@ export class MissionRun {
         const color = o.style === 'photo' ? 0x3fd0ff : o.style === 'waypoint' ? 0xff9a3f : 0xffd23f;
         const g = new THREE.Group();
         const rv = r * 1.25; // bigger, friendlier rings
-        const torus = rainbowRing(rv, Math.max(0.55, rv * 0.08), o.style);
+        const style = o.photo && o.photo.includes(i) ? 'photo' : o.style;
+        const torus = rainbowRing(rv, Math.max(0.55, rv * 0.08), style);
         g.add(torus);
         const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color, transparent: true, opacity: 0.35, depthWrite: false }));
         glow.scale.set(rv * 3, rv * 3, 1);
         g.add(glow);
-        if (o.style === 'photo') {
+        if (style === 'photo') {
           const cam = textSprite('📷', { size: 64, bg: '#ffffff', fg: '#000' });
           cam.position.y = rv + 3;
           cam.scale.multiplyScalar(3.5);
@@ -304,6 +299,7 @@ export class MissionRun {
     this.animateScenery(dt);
     this.confetti.update(dt);
     this.puffs.update(dt);
+    this.leaves.update(dt, this.t, this.flight.pos, this.world.isFall(this.flight.pos.z));
     this.shock.update(dt);
     this.fireworks.update(dt);
     if (this.squash > 0) {
@@ -361,7 +357,7 @@ export class MissionRun {
     const easy = !this.autopilot && this.settings.easy !== false;
     let input = this.autopilot ? this.autoInput() : this.app.input;
     if (easy) input = this.easyInput(input, dt);
-    const opt = { turn: this.profile.upgrades.wings ? 1.7 : 1.35, maxRoll: (this.profile.upgrades.wings ? 58 : 50) * DEG, tank: this.profile.upgrades.blower, free: this.freeBoost > 0 };
+    const opt = { cruise: this.spec.cruise || 1, turn: this.profile.upgrades.wings ? 1.7 : 1.35, maxRoll: (this.profile.upgrades.wings ? 58 : 50) * DEG, tank: this.profile.upgrades.blower, free: this.freeBoost > 0 };
     this.freeBoost = Math.max(0, this.freeBoost - dt);
     this.trickCool = Math.max(0, this.trickCool - dt);
     this.cheerT = Math.max(0, this.cheerT - dt);
@@ -635,7 +631,7 @@ export class MissionRun {
         this.fovKick = 9;
         this.app.sound.whoosh();
         this.cheerT = 0.8;
-        this.pickup(100, o.style === 'photo' ? 'Click! 📸' : 'Ring!');
+        this.pickup(100, o.photo && o.photo.includes(o.count - 1) ? 'Click! 📸' : 'Ring!');
         const line = this.lines.at && this.lines.at[o.count];
         if (line) this.say(line);
         else if (o.count < o.total && Math.random() < 0.35) this.app.hud.say(this.speaker, ['Nice!', 'Woo-hoo!', 'Smooth flying!', 'Bullseye!', 'Yes!'][Math.floor(Math.random() * 5)]);
@@ -724,16 +720,17 @@ export class MissionRun {
       }
     }
     if (S.candyPath) S.candyPath.forEach(c => pts.push(V(...c)));
-    const spacing = S.bounds.corridor ? 70 : 24;
+    const spacing = S.candySpacing || (S.bounds.corridor ? 70 : 24);
     const blocked = (q) => this.world.colliders.some(c => c.type === 'box'
       ? q.x > c.min.x - 4 && q.x < c.max.x + 4 && q.y > c.min.y - 4 && q.y < c.max.y + 4 && q.z > c.min.z - 4 && q.z < c.max.z + 4
       : q.distanceTo(c.c) < c.r + 4);
     const out = [];
-    for (let i = 0; i < pts.length - 1 && out.length < 46; i++) {
+    const cap = S.candyCap || 46;
+    for (let i = 0; i < pts.length - 1 && out.length < cap; i++) {
       const a = pts[i], b = pts[i + 1], len = a.distanceTo(b);
       const n = Math.floor(len / spacing);
       const side = V(-(b.z - a.z), 0, b.x - a.x).normalize();
-      for (let k = 1; k < n && out.length < 46; k++) {
+      for (let k = 1; k < n && out.length < cap; k++) {
         const t = k / n;
         const q = a.clone().lerp(b, t).addScaledVector(side, Math.sin(t * Math.PI * 2) * 4);
         q.y += Math.sin(t * Math.PI) * 3;
@@ -752,7 +749,7 @@ export class MissionRun {
       return m;
     });
     const chase = S.objectives.some(o => o.type === 'chase');
-    const ratio = chase ? 0.25 : this._clusters ? this._clusterFactor * 0.7 : 0.6;
+    const ratio = S.candyRatio || (chase ? 0.25 : this._clusters ? this._clusterFactor * 0.7 : 0.6);
     this.candyNeed = Math.max(1, Math.ceil(this.candies.length * ratio));
   }
 
@@ -911,7 +908,7 @@ export class MissionRun {
     if (this.phase === 'land' || !o) {
       const z = this.zone;
       const zl = this.zoneLocal(F.pos);
-      if (zl.z < -z.len / 2 && Math.abs(zl.x) < 30) return z.center.clone().addScaledVector(z.dir, -z.len * 0.25);
+      if (zl.z < -z.len / 2 && zl.z > -z.len / 2 - 160 && Math.abs(zl.x) < 30 && Math.abs(wrapAngle(z.h - F.h)) < 0.9) return z.center.clone().addScaledVector(z.dir, -z.len * 0.25);
       return z.center.clone().addScaledVector(z.dir, -z.len / 2 - 110).setY(z.y + 22);
     }
     if (o.type === 'rings') return o.meshes[o.count]?.userData.c.clone();

@@ -47,7 +47,7 @@ export class Flight {
     this.boosting = wantBoost;
     if (wantBoost && !opt.free) this.juice = Math.max(0, this.juice - dt * (opt.tank ? 0.14 : 0.22));
     else this.juice = Math.min(1, this.juice + dt * 0.02);
-    let target = wantBoost ? BOOST_SPEED : BASE_SPEED;
+    let target = (wantBoost ? BOOST_SPEED : BASE_SPEED) * (opt.cruise || 1);
     if (opt.slow) target = LANDING_SPEED;
     target -= Math.sin(this.p) * 6; // climbing slows, diving speeds up
     this.speed = damp(this.speed, target, 1.4, dt);

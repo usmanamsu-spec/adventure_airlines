@@ -309,3 +309,39 @@ export function skyRainbow(center, heading, radius = 700) {
   m.renderOrder = -0.5;
   return m;
 }
+
+// ---------------------------------------------------------------- falling autumn leaves around the plane
+export class Leaves {
+  constructor(scene, n = 140) {
+    const geo = new THREE.PlaneGeometry(0.5, 0.35);
+    this.mesh = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ side: THREE.DoubleSide, roughness: 0.8 }), n);
+    this.mesh.frustumCulled = false;
+    const cols = [0xd9462e, 0xe8682a, 0xf28c28, 0xf2b630, 0xf7d046, 0xb5381f];
+    const c = new THREE.Color();
+    this.p = [];
+    for (let i = 0; i < n; i++) {
+      this.mesh.setColorAt(i, c.set(cols[i % cols.length]));
+      this.p.push({ pos: V(0, -999, 0), ph: Math.random() * 6, spin: V(Math.random() * 3, Math.random() * 3, Math.random() * 3), r: V() });
+    }
+    this.m = new THREE.Matrix4(); this.q = new THREE.Quaternion(); this.e = new THREE.Euler(); this.one = V(1, 1, 1); this.zero = V(0, 0, 0);
+    this.amount = 0;
+    scene.add(this.mesh);
+  }
+  update(dt, t, center, active) {
+    this.amount += ((active ? 1 : 0) - this.amount) * Math.min(1, dt * 0.8);
+    const R = 45;
+    this.p.forEach((l, i) => {
+      const show = i < this.p.length * this.amount;
+      if (show && (l.pos.y < center.y - 25 || l.pos.distanceTo(center) > R * 1.4)) {
+        l.pos.set(center.x + (Math.random() - 0.5) * R * 2, center.y + 5 + Math.random() * 25, center.z + Math.random() * R * 1.6);
+      }
+      l.pos.y -= dt * 2.2;
+      l.pos.x += Math.sin(t * 1.3 + l.ph) * dt * 2;
+      l.r.addScaledVector(l.spin, dt);
+      this.e.set(l.r.x, l.r.y, l.r.z);
+      this.m.compose(l.pos, this.q.setFromEuler(this.e), show ? this.one : this.zero);
+      this.mesh.setMatrixAt(i, this.m);
+    });
+    this.mesh.instanceMatrix.needsUpdate = true;
+  }
+}

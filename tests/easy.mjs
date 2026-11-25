@@ -9,7 +9,8 @@ const errors = [];
 page.on('pageerror', e => errors.push(e.message));
 await page.goto(base, { waitUntil: 'commit' });
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 300000 });
-for (let i = 0; i < 9; i++) {
+const N = await page.evaluate(() => window.__missions.length);
+for (let i = 0; i < N; i++) {
   const r = await page.evaluate(async (i) => {
     const a = window.__bsq; a.player = 'yusuf'; a.profile.upgrades.floats = true; a.settings.easy = true;
     await a.startMission(i);

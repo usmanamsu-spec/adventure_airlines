@@ -27,13 +27,16 @@ if (which === 'all' || which.includes('menus')) {
   await page.click('.garage-panel .done');
 }
 await page.evaluate(() => { const a = window.__bsq; a.player = a.player || 'yusuf'; a.profile.upgrades.floats = true; });
-const plan = { m1: 6, m2: 12, m3: 14, m4: 9, trip: 70, m5: 14, m6: 22, m7: 12, m8: 10 };
-const ids = ['m1', 'm2', 'm3', 'm4', 'trip', 'm5', 'm6', 'm7', 'm8'];
+const plan = { intro: 6, dallas: 20, memphis: 61, fall: 72, smokies: 96, pilot: 136, greensboro: 158, downtown: 178, home: 205 };
+const ids = Object.keys(plan);
+const idx = { intro: 0 };
 for (let i = 0; i < ids.length; i++) {
   if (which !== 'all' && !which.split(',').includes(ids[i])) continue;
-  await page.evaluate(async (i) => { await window.__bsq.startMission(i, { autopilot: true }); window.__bsq.sim(4); }, i);
+  const t0 = Date.now();
+  await page.evaluate(async (i) => { await window.__bsq.startMission(i, { autopilot: true }); window.__bsq.sim(4); }, ids[i] === 'intro' ? 0 : 1);
+  console.log('built in', Date.now() - t0, 'ms');
   await page.evaluate((s) => window.__bsq.sim(s), plan[ids[i]]);
-  await page.evaluate(() => { const m = window.__bsq.mission; if (m.phase === 'fly') { m.doTrick(); m.trickT = 0.5; window.__bsq.sim(0.25); } m.flight.boosting = true; for (let k = 0; k < 20; k++) m.puffs.emit(m.plane.group.localToWorld(m.plane.group.position.clone().set(0, 0.8, -1.8 - k * 0.6)), { size: 1.4, life: 0.9 }); });
+  
   await shot(`m-${ids[i]}`);
 }
 await browser.close();

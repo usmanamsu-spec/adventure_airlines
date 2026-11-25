@@ -13,6 +13,7 @@ import { MISSIONS } from './levels.js';
 import { store, recordResult, socksFound } from './save.js';
 import { nextFrame } from './util.js';
 import { preventZoom } from './nozoom.js';
+import { Post } from './graphics.js';
 
 const STEP = 1 / 60;
 const GOLD = [0xf2c230, 0xf2c230];
@@ -38,6 +39,7 @@ class App {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.root.appendChild(this.renderer.domElement);
     this.envMap = new THREE.PMREMGenerator(this.renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+    this.post = new Post(this.renderer);
 
     this.hud = new Hud(this.root, this);
     this.ui = new UI(this.root, this);
@@ -63,6 +65,7 @@ class App {
     const w = window.innerWidth, h = window.innerHeight;
     this.renderer.setSize(w, h);
     for (const cam of [this.titleCam, this.mission?.camera]) if (cam) { cam.aspect = w / h; cam.updateProjectionMatrix(); }
+    this.post.resize();
     // Portrait only. Only react to a sideways screen if it lasts: a quick accidental rotation shouldn't stop the game.
     const sideways = w > h * 1.05;
     clearTimeout(this.sidewaysT);
@@ -270,6 +273,7 @@ class App {
     run.camera.aspect = this.aspect;
     run.camera.updateProjectionMatrix();
     run.updateCamera(0);
+    if (this.settings.graphics !== 'fast') this.post.setup(run.scene, run.camera); else this.post.dispose();
     this.ui.clear();
     this.hud.show();
     this.state = 'mission';
@@ -282,6 +286,7 @@ class App {
   restartMission() { this.startMission(this.missionIndex); }
   quitMission(silent) {
     if (this.mission) { this.mission.dispose(); this.mission = null; }
+    this.post.dispose();
     this.hud.hide();
     if (!silent) { this.state = 'map'; this.ui.map(); this.sound.startMusic('day'); }
   }
@@ -350,7 +355,7 @@ class App {
         let n = 0;
         while (this.acc >= STEP && n++ < 5) { this.mission.step(STEP); this.acc -= STEP; }
       }
-      if (this.mission) this.renderer.render(this.mission.scene, this.mission.camera);
+      if (this.mission) { if (this.post.composer) this.post.render(); else this.renderer.render(this.mission.scene, this.mission.camera); }
     } else if (this.titleScene && this.state !== 'loading') {
       this.titleCamera(dt);
       this.renderer.render(this.titleScene, this.titleCam);
@@ -367,4 +372,5 @@ class App {
 preventZoom();
 const app = new App();
 window.__bsq = app;
+window.__missions = MISSIONS.map(m => m.id);
 app.boot();
