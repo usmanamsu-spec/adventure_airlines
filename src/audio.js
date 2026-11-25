@@ -104,6 +104,41 @@ export class Sound {
       this.noise(0.12, { at, vol: 0.12, freq: 900, q: 2 });
     }
   }
+  /** Anaya Apa's chicken tender: a chicken! bok bok bok... ba-GAWK! */
+  honkChicken() {
+    if (!this.ok) return;
+    const c = this.ctx, t0 = c.currentTime;
+    const cluck = (at, f0, f1, dur, vol, type = 'square') => {
+      const o = c.createOscillator(), g = c.createGain(), bp = c.createBiquadFilter();
+      o.type = type;
+      o.frequency.setValueAtTime(f0, t0 + at);
+      o.frequency.exponentialRampToValueAtTime(f1, t0 + at + dur);
+      bp.type = 'bandpass'; bp.frequency.value = 1400; bp.Q.value = 1.4;
+      g.gain.setValueAtTime(0.0001, t0 + at);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + at + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + dur);
+      o.connect(bp); bp.connect(g); g.connect(this.sfxBus);
+      o.start(t0 + at); o.stop(t0 + at + dur + 0.05);
+    };
+    // bok, bok, bok...
+    [0, 0.13, 0.26].forEach((at, i) => { cluck(at, 760 - i * 30, 430, 0.075, 0.45); this.noise(0.05, { at, vol: 0.12, freq: 2200, q: 2 }); });
+    // ...ba-
+    cluck(0.42, 560, 520, 0.07, 0.4);
+    // -GAWK! (a squawk that jumps up and falls, with a wobble)
+    const at = 0.52, o = c.createOscillator(), lfo = c.createOscillator(), lg = c.createGain(), g = c.createGain(), bp = c.createBiquadFilter();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(640, t0 + at);
+    o.frequency.exponentialRampToValueAtTime(1350, t0 + at + 0.09);
+    o.frequency.exponentialRampToValueAtTime(820, t0 + at + 0.34);
+    lfo.frequency.value = 38; lg.gain.value = 55; lfo.connect(lg); lg.connect(o.frequency);
+    bp.type = 'bandpass'; bp.frequency.value = 1600; bp.Q.value = 1.1;
+    g.gain.setValueAtTime(0.0001, t0 + at);
+    g.gain.exponentialRampToValueAtTime(0.5, t0 + at + 0.02);
+    g.gain.setValueAtTime(0.5, t0 + at + 0.22);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + 0.38);
+    o.connect(bp); bp.connect(g); g.connect(this.sfxBus);
+    o.start(t0 + at); lfo.start(t0 + at); o.stop(t0 + at + 0.42); lfo.stop(t0 + at + 0.42);
+  }
   /** Faris's truck: a big, deep, two-tone car horn */
   honkTruck() {
     if (!this.ok) return;

@@ -28,7 +28,7 @@ No sound? Turn the volume up. The game unlocks sound on the first tap and also p
 | Climb / dive | Stick up / down | Tip the iPad toward / away from you | ↑ ↓ / W S |
 | Boost | **BOOST** button | **BOOST** button | Space / A button |
 | Barrel roll | **🌀 TRICK** button | **🌀 TRICK** button | E / B button |
-| Honk! | **📯 HONK** button (🛻 truck horn for Faris) | **📯 HONK** button | H / Y button |
+| Honk! | **📯 HONK** button (🛻 truck horn for Faris, 🐔 chicken for Anaya Apa) | **📯 HONK** button | H / Y button |
 | Recenter tilt | | 🎯 button | |
 
 Every mission has 3 stars: **finish it**, **collect enough candy 🍬**, and make a **Butter landing 🧈** in the green strip. Grab things quickly for **combos 🔥** and tap **🌀 TRICK** (E key / B button) for barrel rolls and bonus points.
@@ -51,6 +51,9 @@ The leaves turn red, orange and gold from Tennessee onward, with falling leaves 
 
 ### Faris's flying truck
 Pick **Faris** and the cardboard plane turns into his shiny, pointy, stainless-steel flying pickup truck (a Cybertruck-style homage, with no logos). Faris drives in the glass cabin and the rest of the squad rides in the open bed, with extra truck chatter from the back.
+
+### Anaya Apa's giant chicken tender
+Anaya Apa loves chicken tenders, so when she flies, the plane turns into a giant, golden, extra-crispy flying chicken tender: crinkle-cut french-fry wings, a fry propeller (with a dab of ketchup), dipping-sauce-cup rockets (ketchup, honey mustard, BBQ and ranch) and a checkered toothpick flag. The squad rides on cushions along the top, and her horn is a chicken: **BAWK BAWK!**
 
 ### Graphics
 **Fast** graphics are the default. **Fancy** graphics (⚙️ Settings → Graphics) add a glow on bright light (the sun, rings, city lights, fireworks), mirror-like water that reflects the sky and landmarks, and lighting that takes its colors from the sky. Real ray tracing isn't available in iPad browsers, so these effects approximate that look. Fancy can lag on older iPads.

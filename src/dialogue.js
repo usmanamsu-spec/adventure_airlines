@@ -87,6 +87,16 @@ export const SCRIPTS = {
     [["ruman", "Ruman here. Uh... is that a flying TRUCK?"], ["musa|hassan|ayra|harun", "Faris is driving!"], ["ruman", "Of course he is."], ["anaya|yusuf", "Everybody stay sitting down in the truck bed!"]],
     [["yusuf|musa", "Captain Faris, your truck is ready! Fly through the rings!"], ["ayra|harun", "Why is it all pointy?"], ["anaya|yusuf", "Because Faris drew it. With a ruler."], ["zainab|babymusa", Z("Pointy!", "Ba!")]],
   ],
+  'intro.introTender': [
+    [["yusuf|faris", "ANAYA APA. Did you turn the plane into a CHICKEN TENDER?!"], ["five", "It smells SO GOOD!"], ["little", { zainab: "Chicken! Chicken!", babymusa: "Nom nom!", default: "Chicken!" }],
+      ["musa|hassan", "Of course she did. She ALWAYS orders chicken tenders."], ["yusuf|faris", "Rule number one: nobody bites the plane."]],
+    [["ruman", "Ruman here. Uh... why is there a giant chicken tender flying over Plano?"], ["yusuf|faris", "Anaya Apa is driving."], ["ruman", "That explains everything."]],
+    [["ayra|harun", "Can I have a bite? Just a tiny one?"], ["yusuf|musa", "Anaya Apa said if anyone bites the plane, they WALK to Greensboro."], ["little", { zainab: "Bite!", babymusa: "Nom!", default: "Nom!" }]],
+  ],
+  'trip.introTender': [
+    [["musa|hassan", "We're flying to Greensboro... on a chicken tender."], ["yusuf|faris", "Extra crispy!"], ["five", "With dipping sauce rockets!"], ["little", { zainab: "Sauce!", babymusa: "Ba!", default: "Sauce!" }]],
+    [["ruman", "Ruman here. Anaya, are you seriously flying a chicken tender all the way here?"], ["yusuf|musa", "She says it's the best food AND the best plane."], ["ruman", "...Save me a piece."]],
+  ],
   'trip.introTruck': [
     [["musa|hassan|ayra|harun", "We're flying to Greensboro in a TRUCK!"], ["anaya|yusuf", "In the BACK of a truck. With the wind in our hair."], ["five", "BEST. DAY. EVER."], ["little", Z("Vroom vroom!", "Vroom!")]],
     [["ruman", "Ruman here. Faris, you're driving all the way to Greensboro?"], ["anaya|yusuf", "He says he's a very good driver."], ["ruman", "He's five."], ["anaya|musa", "I KNOW."]],
@@ -290,6 +300,25 @@ export const SCRIPTS = {
     [["yusuf|musa", "That's a real truck horn!"], ["anaya|musa", "Faris, stop honking at the birds."]],
     [["ayra|harun", "Honk again, Faris! HONK AGAIN!"], ["anaya|yusuf", "Do NOT honk again."]],
     [["zainab|babymusa", Z("Twuck honk!", "Onk!")], ["ruman", "Ruman here. Was that you? I heard that all the way in Greensboro."]],
+  ],
+
+  honkTender: [
+    [["five", "Was that a CHICKEN?!"], ["yusuf|musa", "The chicken tender has a CHICKEN horn!"], ["little", { zainab: "Bawk bawk!", babymusa: "Bok!", default: "Bawk!" }]],
+    [["faris|harun", "BAWK BAWK! Do it again, Anaya Apa!"], ["zainab|babymusa", { zainab: "Again! Bawk!", babymusa: "Bok bok!" }]],
+    [["yusuf|musa", "The birds are going to think we're a giant chicken."], ["ayra|harun", "We ARE a giant chicken!"]],
+    [["ruman", "Ruman here. Did a chicken just get on the walkie-talkie?"], ["hassan|musa", "That was Anaya Apa's horn!"]],
+    [["little", { zainab: "Chicky! Chicky!", babymusa: "Bok!", default: "Bok!" }]],
+  ],
+  // extra chatter when Anaya Apa is flying the giant chicken tender
+  tenderBanter: [
+    [["harun|faris", "I'm so hungry. This plane is making me SO hungry."], ["yusuf|musa", "Don't lick the plane!"], ["harun|ayra", "I wasn't! ...Okay, a little."]],
+    [["ayra|faris", "Is there honey mustard?"], ["musa|hassan", "There's honey mustard in the rocket cups!"], ["ayra|harun", "This is the best plane EVER."]],
+    [["zainab|babymusa", { zainab: "Nugget!", babymusa: "Nom!" }], ["yusuf|faris", "It's a TENDER, not a nugget. Anaya Apa will want you to know that."]],
+    [["faris|yusuf", "My hands are all crumbly."], ["musa|hassan", "That's the breading. It's very crispy."]],
+    [["hassan|musa", "When we land, can we get actual chicken tenders?"], ["any", "YES!"], ["little", { zainab: "Yes!", babymusa: "Ya!" }]],
+    [["ayra|harun", "Why do we have french fries for wings?"], ["yusuf|faris", "Because Anaya Apa said a tender without fries is just sad."]],
+    [["yusuf", "Anaya Apa has eaten chicken tenders at every restaurant in Plano."], ["musa|hassan", "Every one?"], ["yusuf|faris", "Every. Single. One."]],
+    [["harun|ayra", "If the plane gets hungry, does it eat itself?"], ["musa|yusuf", "...I really hope not."]],
   ],
 
   // extra chatter when Faris is driving the flying truck

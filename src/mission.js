@@ -2,8 +2,7 @@
 import * as THREE from 'three';
 import { World, textSprite } from './world/kit.js';
 import { juiceBox, sock as sockMesh, iceCream, firefly, fishingHat, glowTexture } from './world/props.js';
-import { buildPlane } from './plane.js';
-import { buildTruck } from './truck.js';
+import { buildVehicle } from './vehicles.js';
 import { Flight, BASE_SPEED } from './flight.js';
 import { SCRIPTS, resolveSpeaker, fillText, isLittle } from './dialogue.js';
 import { clamp, damp, wrapAngle, DEG, lerp } from './util.js';
@@ -68,8 +67,8 @@ export class MissionRun {
     this.noDamage = !!S.noDamage || this.easy;
 
     // plane + crew
-    // when Faris flies, the cardboard plane becomes his shiny flying truck
-    const plane = this.player === 'faris' ? buildTruck() : buildPlane({ upgrades: this.profile.upgrades, paint: this.profile.paint });
+    // Faris flies his truck, Anaya Apa her giant chicken tender, everyone else the cardboard plane
+    const plane = buildVehicle(this.player, this.profile);
     plane.setNight(!!S.night);
     this.plane = plane;
     this.scene.add(plane.group);
@@ -278,7 +277,7 @@ export class MissionRun {
     this.countdown = 3.2;
     this.lastCount = 4;
     this.app.input.recenter();
-    const introKey = this.player === 'faris' ? 'introTruck' : isLittle(this.player) ? 'introBaby' : 'intro';
+    const introKey = this.player === 'faris' ? 'introTruck' : this.player === 'anaya' ? 'introTender' : isLittle(this.player) ? 'introBaby' : 'intro';
     this.chat(SCRIPTS[`${this.def.id}.${introKey}`] ? `${this.def.id}.${introKey}` : `${this.def.id}.intro`, { priority: 2 });
     this.updateHud(true);
   }
@@ -407,7 +406,7 @@ export class MissionRun {
     this.time += dt;
     this.invuln = Math.max(0, this.invuln - dt);
     if (this.talking && this.t > this.talkUntil) this.talking = null;
-    if (this.phase === 'fly' && this.t - (this.lastChat || 0) > 9 && this.t > (this.chatBusy || 0)) this.chat(this.player === 'faris' && Math.random() < 0.4 ? 'truckBanter' : 'banter', { priority: 0 });
+    if (this.phase === 'fly' && this.t - (this.lastChat || 0) > 9 && this.t > (this.chatBusy || 0)) this.chat(this.player === 'faris' && Math.random() < 0.4 ? 'truckBanter' : this.player === 'anaya' && Math.random() < 0.4 ? 'tenderBanter' : 'banter', { priority: 0 });
     // little reactions to boosting and juice
     const boostingNow = this.flight.boosting && !this.freeBoost;
     if (boostingNow && !this._wasBoosting && Math.random() < 0.35) this.chat('boost', { priority: 0 });
@@ -854,19 +853,19 @@ export class MissionRun {
   }
 
   honk() {
-    const truck = this.plane.kind === 'truck';
-    this.honkCool = truck ? 0.6 : 0.45;
-    if (truck) this.app.sound.honkTruck(); else this.app.sound.honkPlane();
-    this.app.hud.comic(truck ? 'HOOONK!' : 'HONK HONK!');
+    const kind = this.plane.kind, truck = kind === 'truck', tender = kind === 'tender';
+    this.honkCool = truck ? 0.6 : tender ? 0.95 : 0.45;
+    if (truck) this.app.sound.honkTruck(); else if (tender) this.app.sound.honkChicken(); else this.app.sound.honkPlane();
+    this.app.hud.comic(truck ? 'HOOONK!' : tender ? 'BAWK BAWK!' : 'HONK HONK!');
     // a ring of sound puffs from the front
-    const nose = this.plane.group.localToWorld(V(0, 1, truck ? 3.6 : 3.2));
+    const nose = this.plane.group.localToWorld(V(0, 1, truck ? 3.6 : tender ? 4.1 : 3.2));
     for (let k = 0; k < 10; k++) {
       const a = k / 10 * Math.PI * 2, d = V(Math.cos(a), Math.sin(a), 0).applyQuaternion(this.plane.group.quaternion);
-      this.puffs.emit(nose, { color: truck ? 0.55 : 0.13, size: 0.8, life: 0.45, v: d.multiplyScalar(9), grow: 0.6, light: 0.75 });
+      this.puffs.emit(nose, { color: truck ? 0.55 : tender ? 0.09 : 0.13, size: 0.8, life: 0.45, v: d.multiplyScalar(9), grow: 0.6, light: 0.75 });
     }
     this.cheerT = Math.max(this.cheerT, 0.6);
     this.honks = (this.honks || 0) + 1;
-    if (this.honks === 1 || Math.random() < 0.45) this.chat(truck ? 'honkTruck' : 'honk', { priority: 0 });
+    if (this.honks === 1 || Math.random() < 0.45) this.chat(truck ? 'honkTruck' : tender ? 'honkTender' : 'honk', { priority: 0 });
   }
 
   doTrick() {

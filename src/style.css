@@ -346,3 +346,5 @@ html, body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 .topbar .btn.easymode { background: #fff; }
 .topbar .btn.easymode.on { background: linear-gradient(#8fe36a, #3f9f2a); color: #fff; }
+
+.honk.tender { background: radial-gradient(circle at 40% 35%, #ffd98a, #c8761e); border-color: #fff4d8; }

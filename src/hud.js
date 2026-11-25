@@ -119,7 +119,8 @@ export class Hud {
   setVehicle(kind) {
     const b = this.q('.honk');
     b.classList.toggle('truck', kind === 'truck');
-    b.querySelector('b').textContent = kind === 'truck' ? '🛻' : '📯';
+    b.classList.toggle('tender', kind === 'tender');
+    b.querySelector('b').textContent = kind === 'truck' ? '🛻' : kind === 'tender' ? '🐔' : '📯';
   }
   speedLines(on) { this.set('sl', on, v => this.q('.speedlines').classList.toggle('on', v)); }
   flash() { const f = this.q('.flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); }
